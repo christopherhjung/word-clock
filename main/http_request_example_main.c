@@ -22,6 +22,8 @@
 #include <netdb.h>
 #include <sys/socket.h>
 
+#include "station_example_main.c"
+
 /* Constants that aren't configurable in menuconfig */
 #define WEB_SERVER "example.com"
 #define WEB_PORT 80
@@ -123,10 +125,10 @@ void app_main()
 {
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    //ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-
-    ESP_ERROR_CHECK(example_connect());
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
+    wifi_init_sta();
 
     xTaskCreate(&http_get_task, "http_get_task", 16384, NULL, 5, NULL);
 }
