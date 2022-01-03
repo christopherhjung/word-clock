@@ -41,25 +41,25 @@ void setDescriptor(int);
 
 void sendString(const char *str);
 
-void startFrame(uint8_t*& ptr, uint16_t command);
+void startFrame(uint8_t** ptr, uint16_t command);
 
-void endFrame( uint8_t*& ptr, uint8_t* start);
+void endFrame( uint8_t** ptr, uint8_t** start);
 
 int sendFrame(const uint8_t* arr, size_t len);
 
 int32_t lookupCommandCode(const char* name);
 
-void append(uint8_t*& ptr, float value);
+void appendFloat(uint8_t** ptr, float value);
 
-void append(uint8_t*& ptr, uint8_t value);
+void appendUInt8(uint8_t** ptr, uint8_t value);
 
-void append(uint8_t*& ptr, uint16_t value);
+void appendUInt16(uint8_t** ptr, uint16_t value);
 
-void append(uint8_t*& ptr, uint32_t value);
+void appendUInt32(uint8_t** ptr, uint32_t value);
 
-void append(uint8_t*& ptr, const char* value);
+void appendString(uint8_t** ptr, const char* value);
 
-void append(uint8_t*& ptr, uint16_t length, uint8_t* array);
+void appendArray(uint8_t** ptr, uint8_t *array, uint16_t length);
 
 void notifyState(int status);
 
@@ -69,7 +69,7 @@ void notifyLibraries();
 
 void echo(const char* str);
 
-void registerLibrary(const char *name, void (*fun)(uint8_t, uint8_t*), bool needInitialized = true);
+void registerLibrary(const char *name, void (*fun)(uint8_t, uint8_t*), bool needInitialized);
 
 void handleCoreInit(uint8_t length, uint8_t* frame);
 

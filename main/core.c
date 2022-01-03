@@ -86,6 +86,13 @@ void datahex(const char* string, int len, uint8_t* data) {
     }
 }
 
+void appendString(uint8_t** ptr, const char* value){
+    uint16_t size = strlen(value);
+    appendUInt16(ptr, size);
+    memcpy(*ptr, (uint8_t*)value, size);
+    *ptr += size;
+}
+
 
 int sendHex(const char* str, int len) {
     uint8_t array[len >> 1];
@@ -106,54 +113,55 @@ void registerLibrary(const char* name, void (*fun)(uint8_t, uint8_t*), bool need
 }
 
 
-void startSysFrame(uint8_t*& ptr, uint8_t command){
-    ptr+=2;
-    append(ptr, currentId++);
-    append(ptr, (uint16_t)65535);
-    append(ptr, command);
+void startSysFrame(uint8_t** ptr, uint8_t command){
+    *ptr+=2;
+    appendUInt32(ptr, currentId++);
+    appendUInt16(ptr, (uint16_t)65535);
+    appendUInt8(ptr, command);
 }
 
-void startFrame(uint8_t*& ptr, uint16_t command){
-    ptr+=2;
-    append(ptr, currentId++);
-    append(ptr, command);
+void startFrame(uint8_t** ptr, uint16_t command){
+    *ptr+=2;
+    appendUInt32(ptr, currentId++);
+    appendUInt16(ptr, command);
 }
 
-void endFrame( uint8_t*& ptr, uint8_t* start) {
-    *ptr++ = 0x7f;
-    *(uint16_t*)start = ptr - start;
+void endFrame( uint8_t** ptr, uint8_t** start) {
+    *((*ptr)++) = 0x7f;
+    *(*(uint16_t**)start) = *ptr - *start;
 }
 
-void append(uint8_t*& ptr, float value){
-    append(ptr, *((uint32_t*)&value));
+void appendFloat(uint8_t** ptr, float value){
+    appendUInt32(ptr, *((uint32_t*)&value));
 }
 
-void append(uint8_t*& ptr, uint8_t value){
-    *ptr++ = value;
+void appendUInt8(uint8_t** ptr, uint8_t value){
+    *((*ptr)++) = value;
 }
 
-void append(uint8_t*& ptr, uint16_t value){
-    *ptr++ = value;
-    *ptr++ = value >> 8;
+void appendUInt16(uint8_t** ptr, uint16_t value){
+    *((*ptr)++) = value;
+    *((*ptr)++) = value >> 8;
 }
 
-void append(uint8_t*& ptr, uint32_t value){
-    *ptr++ = value;
-    *ptr++ = value >> 8;
-    *ptr++ = value >> 16;
-    *ptr++ = value >> 24;
+void appendUInt32(uint8_t** ptr, uint32_t value){
+    *((*ptr)++) = value;
+    *((*ptr)++) = value >> 8;
+    *((*ptr)++) = value >> 16;
+    *((*ptr)++) = value >> 24;
 }
 
-void append(uint8_t*& ptr, uint16_t length, uint8_t* array){
-    memcpy(ptr, array, length);
-    ptr += length;
+void appendArray(uint8_t** ptr, uint8_t* array, uint16_t length){
+    memcpy(*ptr, array, length);
+    *ptr += length;
 }
 
 void notifyState(int status){
+    uint8_t *begin = sendBuffer;
     uint8_t *ptr = sendBuffer;
-    startSysFrame(ptr, 0);
-    append(ptr, (uint8_t)status);
-    endFrame(ptr, sendBuffer);
+    startSysFrame(&ptr, 0);
+    appendUInt8(&ptr, (uint8_t)status);
+    endFrame(&ptr, &begin);
     sendFrame(sendBuffer, sendBuffer[0]);
 }
 
@@ -163,10 +171,11 @@ void handleCoreInit(uint8_t length, uint8_t* frame){ //initialize
 }
 
 void echo(const char* str) {
+    uint8_t *begin = sendBuffer;
     uint8_t *ptr = sendBuffer;
-    startSysFrame(ptr, 2);
-    append(ptr, str);
-    endFrame(ptr, sendBuffer);
+    startSysFrame(&ptr, 2);
+    appendString(&ptr, str);
+    endFrame(&ptr, &begin);
     sendFrame(sendBuffer, sendBuffer[0]);
 }
 
@@ -195,11 +204,12 @@ void initLibraries(){
 }
 
 void notifyLibrary(uint8_t command, const char* str){
+    uint8_t *begin = sendBuffer;
     uint8_t *ptr = sendBuffer;
-    startSysFrame(ptr, 1);
-    append(ptr, command);
-    append(ptr, str);
-    endFrame(ptr, sendBuffer);
+    startSysFrame(&ptr, 1);
+    appendUInt8(&ptr, command);
+    appendString(&ptr, str);
+    endFrame(&ptr, &begin);
     sendFrame(sendBuffer, sendBuffer[0]);
 }
 

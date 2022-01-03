@@ -81,7 +81,6 @@ static void http_get_task(void *pvParameters)
         ESP_LOGI(TAG, "... connected");
         freeaddrinfo(res);
 
-
         setDescriptor(s);
         if(sendHex(api, 64) != 0){
             close(s);
