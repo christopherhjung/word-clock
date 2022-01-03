@@ -127,7 +127,7 @@ void app_main()
     //ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-    wifi_init_sta();
+    wifi_init_sta("WLAN-396851", "70235564365384924196");
 
     xTaskCreate(&http_get_task, "http_get_task", 16384, NULL, 5, NULL);
 }
