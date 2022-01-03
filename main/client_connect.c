@@ -15,19 +15,18 @@
 #include "esp_log.h"
 #include "esp_netif.h"
 #include "esp_event.h"
-#include "protocol_examples_common.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 
 #include <netdb.h>
 #include <sys/socket.h>
 
-#include "station_example_main.c"
+#include "wifi_connect.h"
 
 /* Constants that aren't configurable in menuconfig */
 #define WEB_SERVER "example.com"
 #define WEB_PORT 80
-#define WEB_URL "http://example.com/"
+#define WEB_URL "http://" WEB_SERVER "/"
 
 static const char *TAG = "example";
 

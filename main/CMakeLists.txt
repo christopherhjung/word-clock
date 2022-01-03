@@ -1,3 +1,3 @@
-set(COMPONENT_SRCS "http_request_example_main.c")
+set(COMPONENT_SRCS "client_connect.c")
 
 register_component()
