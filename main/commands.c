@@ -35,10 +35,6 @@ void io_siiam$io_pinMode$1_0_0(uint8_t length, uint8_t* frame){
     io_conf.pull_up_en = 0;
     //configure GPIO with the given settings
     gpio_config(&io_conf);
-
-    /*
-
-    pinMode(pinNumber, mode);*/
 }
 
 void io_siiam$io_digitalWrite$1_0_0(uint8_t length, uint8_t* frame){

@@ -29,16 +29,16 @@ char* nextString(uint8_t** ptr){
 }
 
 uint32_t nextUInt32(uint8_t** ptr){
-    uint32_t result = nextUInt8(ptr) << 24;
-    result += nextUInt8(ptr) << 16;
+    uint32_t result = nextUInt8(ptr);
     result += nextUInt8(ptr) << 8;
-    result += nextUInt8(ptr);
+    result += nextUInt8(ptr) << 16;
+    result += nextUInt8(ptr) << 24;
     return result;
 }
 
 uint16_t nextUInt16(uint8_t** ptr){
-    uint16_t result = nextUInt8(ptr) << 8;
-    result += nextUInt8(ptr);
+    uint16_t result = nextUInt8(ptr);
+    result += nextUInt8(ptr) << 8;
     return result;
 }
 

@@ -270,6 +270,10 @@ void runSiiam() {
             }
         }
 
+        for( int i = 0 ; i < received ; i++ ){
+            printf("%d\n", buffer[i]);
+        }
+
         if (buffer[received - 1] == 0x7f) {
             handle();
         }
