@@ -8,6 +8,8 @@
 #include "esp_netif.h"
 #include <sys/socket.h>
 
+#include "config.h"
+
 #include "protocol.h"
 
 #include "io/commands.h"
@@ -252,6 +254,57 @@ void handle() {
         }
     }
     ackFrame(id);
+}
+
+const char *api =   "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962";
+const char *token_default = "d7a2c4db4329895530e6b7fa1a93bbbd7254caa2f221d2cf692cbe743dc35af2";
+
+char token[64];
+char version[64];
+
+void initSiiam(){
+    mount();
+
+    memset(version, 0, 64);
+    memcpy(token, token_default, 64);
+
+    readFile("/spiffs/version", version, 64);
+    ESP_LOGI("core", "Read version: %s", version);
+
+    readFile("/spiffs/token", token, 64);
+    ESP_LOGI("core", "Read token: %s", token);
+
+    if(sendHex(api, 64) != 0){
+        return;
+    }
+
+    sendString(version);
+
+    if(sendHex(token, 64) != 0){
+        return;
+    }
+
+    notifyState(Booted);
+    notifyLibraries();
+    notifyState(Ready);
+
+    static uint8_t sync[32];
+    int counter = 0;
+    for(;;){
+        ssize_t received = recv(stream, &sync, 32 - counter, 0);
+        for(int i = 0 ; i < received ; i++){
+            if(sync[i] == 0x7f){
+                counter++;
+                if(counter == 32){
+                    goto sync;
+                }
+            }else{
+                counter = 0;
+            }
+        }
+    }
+
+    sync:;
 }
 
 void runSiiam() {

@@ -32,9 +32,6 @@
 
 static const char *TAG = "example";
 
-const char *api =   "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962";
-const char *token = "d7a2c4db4329895530e6b7fa1a93bbbd7254caa2f221d2cf692cbe743dc35af2";
-
 static void http_get_task(void *pvParameters)
 {
     const struct addrinfo hints = {
@@ -82,37 +79,8 @@ static void http_get_task(void *pvParameters)
         freeaddrinfo(res);
 
         setDescriptor(s);
-        if(sendHex(api, 64) != 0){
-            close(s);
-            continue;
-        }
 
-        sendString("1.0.0");
-
-        if(sendHex(token, 64) != 0){
-            close(s);
-            continue;
-        }
-
-        notifyState(Booted);
-        notifyLibraries();
-        notifyState(Ready);
-
-        static uint8_t sync[1];
-        int counter = 0;
-        for(;;){
-            ssize_t received = recv(s, &sync, 1, 0);
-            if(received == 1){
-                if(sync[0] == 0x7f){
-                    counter++;
-                    if(counter == 32){
-                        break;
-                    }
-                }else{
-                    counter = 0;
-                }
-            }
-        }
+        initSiiam();
 
         printf("ready\n");
 

@@ -77,4 +77,6 @@ int sendHex(const char* str, int len);
 
 void initLibraries();
 
+void initSiiam();
+
 void runSiiam();

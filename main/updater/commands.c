@@ -18,6 +18,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "esp_ota_ops.h"
+#include "../config.h"
 
 #define EXAMPLE_SERVER_IP   CONFIG_SERVER_IP
 #define EXAMPLE_SERVER_PORT CONFIG_SERVER_PORT
@@ -88,8 +89,8 @@ void io_siiam$update_write$1_0_0(uint8_t length, uint8_t* frame){
         task_fatal_error();
     }
 
-    ESP_LOGE(TAG, "written bytes : %d + %d = %d", writtenSize, length , writtenSize + length);
     writtenSize += length;
+    ESP_LOGE(TAG, "written bytes : %d", writtenSize);
 
     float percent = 100.0f * ((float) writtenSize) / ((float)binarySize);
 
@@ -109,12 +110,18 @@ void io_siiam$update_end$1_0_0(uint8_t length, uint8_t* frame){
         ESP_LOGE(TAG, "esp_ota_end failed!");
         task_fatal_error();
     }
-    update_handle = 0;
+
     err = esp_ota_set_boot_partition(update_partition);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "esp_ota_set_boot_partition failed! err=0x%x", err);
         task_fatal_error();
     }
+
+    char *str = nextString(&frame);
+    ESP_LOGI(TAG, "Write version: %s", str);
+    writeFile("/spiffs/version", str);
+    free(str);
+
     ESP_LOGI(TAG, "Prepare to restart system!");
     esp_restart();
 }
