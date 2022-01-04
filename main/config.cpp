@@ -30,7 +30,7 @@ void readFile(const char* path, char *buffer, int size){
         return;
     }
 
-    fgets(buffer, size, f);
+    fgets(buffer, size , f);
     fclose(f);
 }
 

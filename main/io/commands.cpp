@@ -22,9 +22,9 @@ void io_siiam$io_pinMode$1_0_0(uint8_t length, uint8_t* frame){
     //bit mask of the pins that you want to set,e.g.GPIO15/16
     io_conf.pin_bit_mask = 1ULL << pinNumber;
     //disable pull-down mode
-    io_conf.pull_down_en = 0;
+    io_conf.pull_down_en = (gpio_pulldown_t)0;
     //disable pull-up mode
-    io_conf.pull_up_en = 0;
+    io_conf.pull_up_en = (gpio_pullup_t)0;
     //configure GPIO with the given settings
     gpio_config(&io_conf);
 }
@@ -32,7 +32,7 @@ void io_siiam$io_pinMode$1_0_0(uint8_t length, uint8_t* frame){
 void io_siiam$io_digitalWrite$1_0_0(uint8_t length, uint8_t* frame){
     int pinNumber = nextUInt8(&frame);
     int state = nextUInt8(&frame);
-    gpio_set_level(pinNumber, state);
+    gpio_set_level((gpio_num_t)pinNumber, state);
 }
 
 void io_siiam$io_digitalRead$1_0_0(uint8_t length, uint8_t* frame){
@@ -45,7 +45,7 @@ void io_siiam$io_digitalRead$1_0_0(uint8_t length, uint8_t* frame){
     if(command >= 0){
         uint8_t pinNumber = nextUInt8(&frame);
         uint32_t readIndex = nextUInt32(&frame);
-        int result = gpio_get_level(pinNumber);
+        int result = gpio_get_level((gpio_num_t)pinNumber);
 
         uint8_t *begin = sendBuffer;
         uint8_t *ptr = sendBuffer;

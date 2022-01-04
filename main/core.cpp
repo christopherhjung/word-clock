@@ -141,7 +141,7 @@ void appendFloat(uint8_t** ptr, float value){
     appendUInt32(ptr, *((uint32_t*)&value));
 }
 
-inline void appendUInt8(uint8_t** ptr, uint8_t value){
+void appendUInt8(uint8_t** ptr, uint8_t value){
     **ptr = value;
     (*ptr)++;
 }
@@ -196,6 +196,15 @@ int32_t lookupCommandCode(const char *name){
     return -1;
 }
 
+void assignToken(uint8_t length, uint8_t* frame){ //initialize
+    auto str = nextString(&frame);
+    writeFile("/spiffs/token", str);
+}
+
+void restart(uint8_t length, uint8_t* frame){ //initialize
+    esp_restart();
+}
+
 void initLibraries(){
     registerLibrary("io.siiam:core.init:1.0.0", handleCoreInit, false);
 
@@ -203,7 +212,12 @@ void initLibraries(){
     registerLibrary("io.siiam:io.digitalWrite:1.0.0", io_siiam$io_digitalWrite$1_0_0, true);
     registerLibrary("io.siiam:io.digitalRead:1.0.0", io_siiam$io_digitalRead$1_0_0, true);
 
-    #ifdef NEOPIXEL
+
+    registerLibrary("io.siiam:core.token.assign:1.0.0", assignToken, false);
+    registerLibrary("io.siiam:core.restart:1.0.0", restart, false);
+
+
+#ifdef NEOPIXEL
         registerLibrary("io.siiam:neopixel.create:1.0.0", io_siiam$neopixel_create$1_0_0, true);
         registerLibrary("io.siiam:neopixel.set:1.0.0", io_siiam$neopixel_set$1_0_0, true);
         registerLibrary("io.siiam:neopixel.show:1.0.0", io_siiam$neopixel_show$1_0_0, true);
@@ -264,11 +278,11 @@ void handle() {
     ackFrame(id);
 }
 
-const char *api =   "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962";
-const char *token_default = "d7a2c4db4329895530e6b7fa1a93bbbd7254caa2f221d2cf692cbe743dc35af2";
+const char *api =           "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962";
+const char *token_default = "0000000000000000000000000000000000000000000000000000000000000000";
 
-char token[64];
-char version[64];
+char token[65];
+char version[65];
 
 void initSiiam(){
     mount();
@@ -276,10 +290,10 @@ void initSiiam(){
     memset(version, 0, 64);
     memcpy(token, token_default, 64);
 
-    readFile("/spiffs/version", version, 64);
+    readFile("/spiffs/version", version, 65);
     ESP_LOGI("core", "Read version: %s", version);
 
-    readFile("/spiffs/token", token, 64);
+    readFile("/spiffs/token", token, 65);
     ESP_LOGI("core", "Read token: %s", token);
 
     if(sendHex(api, 64) != 0){
@@ -316,18 +330,27 @@ void initSiiam(){
 }
 
 void runSiiam() {
-    ssize_t received = recv(stream, &buffer, 2, 0);
-    if(received == 2){
-        uint16_t frameSize = *(uint16_t*)buffer;
-        for(;;){
-            received += recv(stream, buffer + received, frameSize - received, 0);
-            if(received >= frameSize){
-                break;
+    while(true){
+        ssize_t received = recv(stream, &buffer, 2, 0);
+        if(received == 2){
+            uint16_t frameSize = *(uint16_t*)buffer;
+            for(;;){
+                received += recv(stream, buffer + received, frameSize - received, 0);
+                if(received >= frameSize){
+                    break;
+                }
             }
-        }
 
-        if (buffer[received - 1] == 0x7f) {
-            handle();
+            if (buffer[received - 1] == 0x7f) {
+                handle();
+            }
+        }else if(received == 0){
+            int error = 0;
+            socklen_t len = sizeof (error);
+            int retval = getsockopt (stream, SOL_SOCKET, SO_ERROR, &error, &len);
+
+            ESP_LOGI("core", "Error connection: %d %d" , error, retval);
+            break;
         }
     }
 }
