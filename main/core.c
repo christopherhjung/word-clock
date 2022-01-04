@@ -11,6 +11,7 @@
 #include "protocol.h"
 
 #include "io/commands.h"
+#include "updater/commands.h"
 //#include "neopixel/commands.h"
 
 static const char *CORE = "example";
@@ -196,8 +197,8 @@ void initLibraries(){
 /*
     registerLibrary("io.siiam:neopixel.create:1.0.0", io_siiam$neopixel_create$1_0_0);
     registerLibrary("io.siiam:neopixel.set:1.0.0", io_siiam$neopixel_set$1_0_0);
-    registerLibrary("io.siiam:neopixel.show:1.0.0", io_siiam$neopixel_show$1_0_0);
-*/
+    registerLibrary("io.siiam:neopixel.show:1.0.0", io_siiam$neopixel_show$1_0_0);*/
+
     /*registerLibrary("io.siiam:core.token.assign:1.0.0", assignToken, false);
     registerLibrary("io.siiam:core.restart:1.0.0", restart, false);
     registerLibrary("io.siiam:core.setDebugLevel:1.0.0", setDebugLevel, false);
@@ -206,12 +207,12 @@ void initLibraries(){
     registerLibrary("io.siiam:stepper.move:1.0.0", io_siiam$stepper_move$1_0_0);
     registerLibrary("io.siiam:motionSystem.create:1.0.0", io_siiam$motionSystem_create$1_0_0);
     registerLibrary("io.siiam:motionSystem.attach:1.0.0", io_siiam$motionSystem_attach$1_0_0);
-    registerLibrary("io.siiam:motionSystem.move:1.0.0", io_siiam$motionSystem_move$1_0_0);
+    registerLibrary("io.siiam:motionSystem.move:1.0.0", io_siiam$motionSystem_move$1_0_0);*/
 
 
     registerLibrary("io.siiam:update.begin:1.0.0", io_siiam$update_begin$1_0_0, false);
     registerLibrary("io.siiam:update.write:1.0.0", io_siiam$update_write$1_0_0, false);
-    registerLibrary("io.siiam:update.end:1.0.0", io_siiam$update_end$1_0_0, false);*/
+    registerLibrary("io.siiam:update.end:1.0.0", io_siiam$update_end$1_0_0, false);
 }
 
 void notifyLibrary(uint8_t command, const char* str){
@@ -247,7 +248,7 @@ void handle() {
     library_t *lib = libraries + command;
     if(initialized || !lib->needInitialized){
         if(lib->fun != NULL){
-            lib->fun(size - 7, ptr);
+            lib->fun(size - 8, ptr);
         }
     }
     ackFrame(id);
@@ -262,10 +263,6 @@ void runSiiam() {
             if(received >= frameSize){
                 break;
             }
-        }
-
-        for( int i = 0 ; i < received ; i++ ){
-            printf("%d\n", buffer[i]);
         }
 
         if (buffer[received - 1] == 0x7f) {
