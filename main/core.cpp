@@ -92,14 +92,6 @@ void datahex(const char* string, int len, uint8_t* data) {
     }
 }
 
-void appendString(uint8_t** ptr, const char* value){
-    uint16_t size = strlen(value);
-    appendUInt16(ptr, size);
-    memcpy(*ptr, (uint8_t*)value, size);
-    *ptr += size;
-}
-
-
 int sendHex(const char* str, int len) {
     uint8_t array[len >> 1];
     datahex(str, len, array);
@@ -137,31 +129,9 @@ void endFrame( uint8_t** ptr, uint8_t** start) {
     *(*(uint16_t**)start) = *ptr - *start;
 }
 
-void appendFloat(uint8_t** ptr, float value){
-    appendUInt32(ptr, *((uint32_t*)&value));
-}
 
-void appendUInt8(uint8_t** ptr, uint8_t value){
-    **ptr = value;
-    (*ptr)++;
-}
 
-void appendUInt16(uint8_t** ptr, uint16_t value){
-    appendUInt8(ptr, value);
-    appendUInt8(ptr, value >> 8);
-}
 
-void appendUInt32(uint8_t** ptr, uint32_t value){
-    appendUInt8(ptr, value);
-    appendUInt8(ptr, value >> 8);
-    appendUInt8(ptr, value >> 16);
-    appendUInt8(ptr, value >> 24);
-}
-
-void appendArray(uint8_t** ptr, uint8_t* array, uint16_t length){
-    memcpy(*ptr, array, length);
-    *ptr += length;
-}
 
 void notifyState(uint8_t status){
     uint8_t *begin = sendBuffer;

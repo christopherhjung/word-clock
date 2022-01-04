@@ -44,3 +44,37 @@ uint16_t nextUInt16(uint8_t** ptr){
 uint8_t nextUInt8(uint8_t** ptr){
     return *((*ptr)++);
 }
+
+void appendFloat(uint8_t** ptr, float value){
+    appendUInt32(ptr, *((uint32_t*)&value));
+}
+
+void appendUInt8(uint8_t** ptr, uint8_t value){
+    **ptr = value;
+    (*ptr)++;
+}
+
+void appendUInt16(uint8_t** ptr, uint16_t value){
+    appendUInt8(ptr, value);
+    appendUInt8(ptr, value >> 8);
+}
+
+void appendUInt32(uint8_t** ptr, uint32_t value){
+    appendUInt8(ptr, value);
+    appendUInt8(ptr, value >> 8);
+    appendUInt8(ptr, value >> 16);
+    appendUInt8(ptr, value >> 24);
+}
+
+void appendArray(uint8_t** ptr, uint8_t* array, uint16_t length){
+    memcpy(*ptr, array, length);
+    *ptr += length;
+}
+
+
+void appendString(uint8_t** ptr, const char* value){
+    uint16_t size = strlen(value);
+    appendUInt16(ptr, size);
+    memcpy(*ptr, (uint8_t*)value, size);
+    *ptr += size;
+}

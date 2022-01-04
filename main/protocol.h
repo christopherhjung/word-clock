@@ -22,3 +22,15 @@ uint16_t nextUInt16(uint8_t** ptr);
 uint8_t nextUInt8(uint8_t** ptr);
 
 char *nextString(uint8_t** ptr);
+
+void appendFloat(uint8_t** ptr, float value);
+
+void appendUInt8(uint8_t** ptr, uint8_t value);
+
+void appendUInt16(uint8_t** ptr, uint16_t value);
+
+void appendUInt32(uint8_t** ptr, uint32_t value);
+
+void appendString(uint8_t** ptr, const char* value);
+
+void appendArray(uint8_t** ptr, uint8_t *array, uint16_t length);
