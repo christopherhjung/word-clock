@@ -91,12 +91,10 @@ static void http_get_task(void *pvParameters)
 
 
 void run() {
-    initLibraries();
-
     ESP_ERROR_CHECK (nvs_flash_init());
     ESP_ERROR_CHECK (esp_netif_init());
-    //ESP_ERROR_CHECK(esp_event_loop_create_default());
 
+    initLibraries();
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA" ) ;
     wifi_init_sta ( "WLAN-396851" , "70235564365384924196" ) ;
 
