@@ -188,4 +188,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+NeoPixelBus_ESP8266_RTOS
+
 # End of https://www.toptal.com/developers/gitignore/api/clion,c++,macos,cmake

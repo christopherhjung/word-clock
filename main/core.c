@@ -14,7 +14,13 @@
 
 #include "io/commands.h"
 #include "updater/commands.h"
-//#include "neopixel/commands.h"
+
+
+#define NEOPIXEL
+
+#ifdef NEOPIXEL
+#include "neopixel/commands.h"
+#endif
 
 static const char *CORE = "example";
 
@@ -196,10 +202,12 @@ void initLibraries(){
     registerLibrary("io.siiam:io.pinMode:1.0.0", io_siiam$io_pinMode$1_0_0, true);
     registerLibrary("io.siiam:io.digitalWrite:1.0.0", io_siiam$io_digitalWrite$1_0_0, true);
     registerLibrary("io.siiam:io.digitalRead:1.0.0", io_siiam$io_digitalRead$1_0_0, true);
-/*
-    registerLibrary("io.siiam:neopixel.create:1.0.0", io_siiam$neopixel_create$1_0_0);
-    registerLibrary("io.siiam:neopixel.set:1.0.0", io_siiam$neopixel_set$1_0_0);
-    registerLibrary("io.siiam:neopixel.show:1.0.0", io_siiam$neopixel_show$1_0_0);*/
+
+    #ifdef NEOPIXEL
+        registerLibrary("io.siiam:neopixel.create:1.0.0", io_siiam$neopixel_create$1_0_0, true);
+        registerLibrary("io.siiam:neopixel.set:1.0.0", io_siiam$neopixel_set$1_0_0, true);
+        registerLibrary("io.siiam:neopixel.show:1.0.0", io_siiam$neopixel_show$1_0_0, true);
+    #endif
 
     /*registerLibrary("io.siiam:core.token.assign:1.0.0", assignToken, false);
     registerLibrary("io.siiam:core.restart:1.0.0", restart, false);

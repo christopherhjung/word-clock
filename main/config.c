@@ -7,6 +7,8 @@
 #include "esp_log.h"
 #include "esp_spiffs.h"
 
+#include "cJSON.h"
+
 static const char *TAG = "example";
 
 
