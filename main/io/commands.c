@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "protocol.h"
-#include "core.h"
+#include "../protocol.h"
+#include "../core.h"
 #include "commands.h"
 
 #include "driver/gpio.h"

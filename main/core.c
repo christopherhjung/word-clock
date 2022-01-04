@@ -6,17 +6,11 @@
 #include "esp_system.h"
 #include "esp_log.h"
 #include "esp_netif.h"
-#include "esp_event.h"
-#include "nvs.h"
-#include "nvs_flash.h"
-
-#include <netdb.h>
 #include <sys/socket.h>
 
-#include "wifi_connect.h"
 #include "protocol.h"
 
-#include "commands.h"
+#include "io/commands.h"
 //#include "neopixel/commands.h"
 
 static const char *CORE = "example";

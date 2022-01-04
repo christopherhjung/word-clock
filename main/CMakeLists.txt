@@ -1,3 +1,3 @@
-set(COMPONENT_SRCS "client_connect.c")
 
+add_subdirectory(io)
 register_component()
