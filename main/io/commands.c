@@ -10,14 +10,6 @@
 
 #include "driver/gpio.h"
 
-
-#define GPIO_OUTPUT_IO_0    15
-#define GPIO_OUTPUT_IO_1    16
-#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_0) | (1ULL<<GPIO_OUTPUT_IO_1))
-#define GPIO_INPUT_IO_0     4
-#define GPIO_INPUT_IO_1     5
-#define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0) | (1ULL<<GPIO_INPUT_IO_1))
-
 void io_siiam$io_pinMode$1_0_0(uint8_t length, uint8_t* frame){
     int pinNumber = nextUInt8(&frame);
     int mode = nextUInt8(&frame);

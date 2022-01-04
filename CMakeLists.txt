@@ -2,7 +2,7 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-project(siiam-device)
+project(siiam-device-rtos)
 
 set(ENV{IDF_PATH} "/Users/chris/CLionProjects/ESP8266_RTOS_SDK")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
