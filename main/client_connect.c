@@ -98,6 +98,28 @@ static void http_get_task(void *pvParameters)
         notifyLibraries();
         notifyState(Ready);
 
+        static uint8_t sync[1];
+        int counter = 0;
+        for(;;){
+            ssize_t received = recv(s, &sync, 1, 0);
+            if(received == 1){
+                if(sync[0] == 0x7f){
+                    counter++;
+                    if(counter == 32){
+                        break;
+                    }
+                }else{
+                    counter = 0;
+                }
+            }
+        }
+
+        printf("ready\n");
+
+        for(;;){
+            runSiiam();
+        }
+
         ESP_LOGI(TAG, "... socket send success");
 
         struct timeval receiving_timeout;

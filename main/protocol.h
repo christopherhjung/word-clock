@@ -3,25 +3,22 @@
 //
 
 #pragma once
-#ifdef ARDUINO
-#include <Arduino.h>
-#endif
 
-#include <cstdlib>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_system.h"
+#include "esp_log.h"
+#include "esp_netif.h"
+#include "esp_event.h"
+#include "nvs.h"
+#include "nvs_flash.h"
 
-template<class T>
-T next(uint8_t*& ptr){
-    T result;
-    uint8_t *current = (uint8_t*) &result;
-    for(uint8_t size = sizeof(T) ;size > 0; size--){
-        *current++ = *ptr++;
-    }
-    return result;
-}
+char* nextString(uint8_t** ptr);
 
-template<uint8_t>
-uint8_t next(uint8_t*& ptr){
-    return *ptr++;
-}
+uint32_t nextUInt32(uint8_t** ptr);
 
-String nextString(uint8_t*& ptr);
+uint16_t nextUInt16(uint8_t** ptr);
+
+uint8_t nextUInt8(uint8_t** ptr);
+
+char *nextString(uint8_t** ptr);

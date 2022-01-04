@@ -14,7 +14,10 @@
 #include <sys/socket.h>
 
 #include "wifi_connect.h"
+#include "protocol.h"
 
+#include "commands.h"
+//#include "neopixel/commands.h"
 
 static const char *CORE = "example";
 
@@ -127,7 +130,7 @@ void startFrame(uint8_t** ptr, uint16_t command){
 }
 
 void endFrame( uint8_t** ptr, uint8_t** start) {
-    *((*ptr)++) = 0x7f;
+    appendUInt8(ptr, 0x7f);
     *(*(uint16_t**)start) = *ptr - *start;
 }
 
@@ -135,20 +138,21 @@ void appendFloat(uint8_t** ptr, float value){
     appendUInt32(ptr, *((uint32_t*)&value));
 }
 
-void appendUInt8(uint8_t** ptr, uint8_t value){
-    *((*ptr)++) = value;
+inline void appendUInt8(uint8_t** ptr, uint8_t value){
+    **ptr = value;
+    (*ptr)++;
 }
 
 void appendUInt16(uint8_t** ptr, uint16_t value){
-    *((*ptr)++) = value;
-    *((*ptr)++) = value >> 8;
+    appendUInt8(ptr, value);
+    appendUInt8(ptr, value >> 8);
 }
 
 void appendUInt32(uint8_t** ptr, uint32_t value){
-    *((*ptr)++) = value;
-    *((*ptr)++) = value >> 8;
-    *((*ptr)++) = value >> 16;
-    *((*ptr)++) = value >> 24;
+    appendUInt8(ptr, value);
+    appendUInt8(ptr, value >> 8);
+    appendUInt8(ptr, value >> 16);
+    appendUInt8(ptr, value >> 24);
 }
 
 void appendArray(uint8_t** ptr, uint8_t* array, uint16_t length){
@@ -156,11 +160,11 @@ void appendArray(uint8_t** ptr, uint8_t* array, uint16_t length){
     *ptr += length;
 }
 
-void notifyState(int status){
+void notifyState(uint8_t status){
     uint8_t *begin = sendBuffer;
     uint8_t *ptr = sendBuffer;
     startSysFrame(&ptr, 0);
-    appendUInt8(&ptr, (uint8_t)status);
+    appendUInt8(&ptr, status);
     endFrame(&ptr, &begin);
     sendFrame(sendBuffer, sendBuffer[0]);
 }
@@ -179,14 +183,30 @@ void echo(const char* str) {
     sendFrame(sendBuffer, sendBuffer[0]);
 }
 
+int32_t lookupCommandCode(const char *name){
+    foreach(i, libraryHead){
+        if(strcmp(libraries[i].name, name) == 0){
+            return (int32_t)libraries[i].index;
+        }
+    }
+
+    return -1;
+}
+
 void initLibraries(){
     registerLibrary("io.siiam:core.init:1.0.0", handleCoreInit, false);
+
+    registerLibrary("io.siiam:io.pinMode:1.0.0", io_siiam$io_pinMode$1_0_0, true);
+    registerLibrary("io.siiam:io.digitalWrite:1.0.0", io_siiam$io_digitalWrite$1_0_0, true);
+    registerLibrary("io.siiam:io.digitalRead:1.0.0", io_siiam$io_digitalRead$1_0_0, true);
+/*
+    registerLibrary("io.siiam:neopixel.create:1.0.0", io_siiam$neopixel_create$1_0_0);
+    registerLibrary("io.siiam:neopixel.set:1.0.0", io_siiam$neopixel_set$1_0_0);
+    registerLibrary("io.siiam:neopixel.show:1.0.0", io_siiam$neopixel_show$1_0_0);
+*/
     /*registerLibrary("io.siiam:core.token.assign:1.0.0", assignToken, false);
     registerLibrary("io.siiam:core.restart:1.0.0", restart, false);
     registerLibrary("io.siiam:core.setDebugLevel:1.0.0", setDebugLevel, false);
-    registerLibrary("io.siiam:io.pinMode:1.0.0", io_siiam$io_pinMode$1_0_0);
-    registerLibrary("io.siiam:io.digitalWrite:1.0.0", io_siiam$io_digitalWrite$1_0_0);
-    registerLibrary("io.siiam:io.digitalRead:1.0.0", io_siiam$io_digitalRead$1_0_0);
 
     registerLibrary("io.siiam:stepper.create:1.0.0", io_siiam$stepper_create$1_0_0);
     registerLibrary("io.siiam:stepper.move:1.0.0", io_siiam$stepper_move$1_0_0);
@@ -194,9 +214,6 @@ void initLibraries(){
     registerLibrary("io.siiam:motionSystem.attach:1.0.0", io_siiam$motionSystem_attach$1_0_0);
     registerLibrary("io.siiam:motionSystem.move:1.0.0", io_siiam$motionSystem_move$1_0_0);
 
-    registerLibrary("io.siiam:neopixel.create:1.0.0", io_siiam$neopixel_create$1_0_0);
-    registerLibrary("io.siiam:neopixel.set:1.0.0", io_siiam$neopixel_set$1_0_0);
-    registerLibrary("io.siiam:neopixel.show:1.0.0", io_siiam$neopixel_show$1_0_0);
 
     registerLibrary("io.siiam:update.begin:1.0.0", io_siiam$update_begin$1_0_0, false);
     registerLibrary("io.siiam:update.write:1.0.0", io_siiam$update_write$1_0_0, false);
@@ -216,5 +233,45 @@ void notifyLibrary(uint8_t command, const char* str){
 void notifyLibraries(){
     foreach(i, libraryHead){
         notifyLibrary(i, libraries[i].name);
+    }
+}
+
+void ackFrame(uint32_t id){
+    uint8_t *begin = sendBuffer;
+    uint8_t *ptr = sendBuffer;
+    startSysFrame(&ptr, 3);
+    appendUInt32(&ptr, id);
+    endFrame(&ptr, &begin);
+    sendFrame(sendBuffer, sendBuffer[0]);
+}
+
+void handle() {
+    uint8_t *ptr = buffer;
+    uint16_t size = nextUInt16(&ptr);
+    uint32_t id = nextUInt32(&ptr);
+    uint8_t command = nextUInt8(&ptr);
+    library_t *lib = libraries + command;
+    if(initialized || !lib->needInitialized){
+        if(lib->fun != NULL){
+            lib->fun(size - 7, ptr);
+        }
+    }
+    ackFrame(id);
+}
+
+void runSiiam() {
+    ssize_t received = recv(stream, &buffer, 2, 0);
+    if(received == 2){
+        uint16_t frameSize = *(uint16_t*)buffer;
+        for(;;){
+            received += recv(stream, buffer + received, frameSize - received, 0);
+            if(received >= frameSize){
+                break;
+            }
+        }
+
+        if (buffer[received - 1] == 0x7f) {
+            handle();
+        }
     }
 }

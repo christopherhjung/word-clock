@@ -61,7 +61,7 @@ void appendString(uint8_t** ptr, const char* value);
 
 void appendArray(uint8_t** ptr, uint8_t *array, uint16_t length);
 
-void notifyState(int status);
+void notifyState(uint8_t status);
 
 void notifyLibrary(uint8_t command, const char*str);
 
@@ -76,3 +76,5 @@ void handleCoreInit(uint8_t length, uint8_t* frame);
 int sendHex(const char* str, int len);
 
 void initLibraries();
+
+void runSiiam();
