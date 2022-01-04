@@ -22,8 +22,7 @@
 #include <sys/socket.h>
 
 #include "wifi_connect.h"
-
-#include "core.h"
+#include "../core.h"
 
 /* Constants that aren't configurable in menuconfig */
 #define WEB_SERVER "192.168.2.176"

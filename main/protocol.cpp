@@ -15,7 +15,6 @@
 #include <netdb.h>
 #include <sys/socket.h>
 
-#include "wifi_connect.h"
 #include "protocol.h"
 
 

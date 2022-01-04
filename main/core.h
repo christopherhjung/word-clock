@@ -10,7 +10,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 
-#include "wifi_connect.h"
+#include "network/wifi_connect.h"
 #pragma once
 
 #define foreach(i, size) for( uint32_t i = 0 ; i < size ; i++ )
