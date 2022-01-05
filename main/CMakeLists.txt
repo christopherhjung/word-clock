@@ -1,3 +1,5 @@
+file(GLOB_RECURSE SIIAM_SRC *.cpp)
 
-add_subdirectory(io)
+set(COMPONENT_SRCS ${SIIAM_SRC})
+set(COMPONENT_ADD_INCLUDEDIRS ".")
 register_component()

@@ -26,7 +26,6 @@
 #define BUFFSIZE 1500
 #define TEXT_BUFFSIZE 1024
 
-
 static const char *TAG = "ota";
 
 static void __attribute__((noreturn)) task_fatal_error()
@@ -36,7 +35,6 @@ static void __attribute__((noreturn)) task_fatal_error()
         ;
     }
 }
-
 
 esp_ota_handle_t update_handle = 0;
 const esp_partition_t *update_partition = NULL;
