@@ -118,8 +118,9 @@ void io_siiam$update_end$1_0_0(uint8_t length, uint8_t* frame){
     }
 
     char *str = nextString(&frame);
+    setVersion(str);
+    saveConfig();
     ESP_LOGI(TAG, "Write version: %s", str);
-    writeFile("/spiffs/version", str);
     free(str);
 
     ESP_LOGI(TAG, "Prepare to restart system!");

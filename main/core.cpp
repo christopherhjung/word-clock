@@ -249,22 +249,20 @@ void handle() {
 }
 
 const char *api =           "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962";
-const char *token_default = "0000000000000000000000000000000000000000000000000000000000000000";
-
-char token[65];
-char version[65];
 
 void initSiiam(){
-    mount();
+    initLibraries();
 
-    memset(version, 0, 64);
-    memcpy(token, token_default, 64);
-
-    readFile("/spiffs/version", version, 65);
+    const char* version = getVersion();
     ESP_LOGI("core", "Read version: %s", version);
 
-    readFile("/spiffs/token", token, 65);
-    ESP_LOGI("core", "Read token: %s", token);
+    const char* token = getToken();
+    if(token == NULL){
+        ESP_LOGI("core", "No token");
+        token = "0000000000000000000000000000000000000000000000000000000000000000";
+    }else{
+        ESP_LOGI("core", "Read token: %s", token);
+    }
 
     if(sendHex(api, 64) != 0){
         return;

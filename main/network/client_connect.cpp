@@ -78,8 +78,7 @@ static void http_get_task(void *pvParameters)
 
         initSiiam();
 
-        printf("ready\n");
-
+        ESP_LOGI(TAG, "ready");
         runSiiam();
 
         close(s);
@@ -87,16 +86,6 @@ static void http_get_task(void *pvParameters)
     }
 }
 
-
-
-void run() {
-    ESP_ERROR_CHECK (nvs_flash_init());
-    ESP_ERROR_CHECK (esp_netif_init());
-
-    initLibraries();
-    ESP_LOGI(TAG, "ESP_WIFI_MODE_STA" ) ;
-    wifi_init_sta ( "WLAN-396851" , "70235564365384924196" ) ;
-
+void runControlLink(){
     xTaskCreate(&http_get_task, "http_get_task" , 16384 , NULL , 5 , NULL ) ;
 }
-

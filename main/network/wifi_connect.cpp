@@ -65,8 +65,6 @@ void wifi_init_sta(const char* ssid, const char* password)
 
     tcpip_adapter_init();
 
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
