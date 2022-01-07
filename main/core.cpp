@@ -248,7 +248,7 @@ void handle() {
     ackFrame(id);
 }
 
-const char *api =           "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962";
+const char *api = "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962";
 
 void initSiiam(){
     initLibraries();

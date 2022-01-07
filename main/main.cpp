@@ -1,8 +1,10 @@
-#include "network/client_connect.h"
+
+
 #include "network/wifi_connect.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
 #include "esp_system.h"
 #include "esp_log.h"
 #include "esp_netif.h"
@@ -16,7 +18,13 @@
 #include "terminal/terminal.h"
 #include "config.h"
 #include "core.h"
-#include "neopixel/neopixel.h"
+
+#include "network/client_connect.h"
+
+#define SIIAM_WIFI_SSID "WLAN-396851"
+#define SIIAM_WIFI_PASSWORD "70235564365384924196"
+#define SIIAM_HOST "192.168.2.176"
+#define SIIAM_TOKEN "9328c500a8c6384bcc271fb10be86fb21a05ff71b314ed59d5824f5c006d2679"
 
 int myPutChar(int cha){
     return cha;
@@ -31,11 +39,12 @@ void run(){
     loadConfig();
 
     ESP_LOGI("wifi", "ESP_WIFI_MODE_STA" ) ;
-    wifi_init_sta ( "WLAN-396851" , "70235564365384924196" ) ;
+    setToken(SIIAM_TOKEN);
+    wifi_init_sta ( SIIAM_WIFI_SSID , SIIAM_WIFI_PASSWORD ) ;
 
     esp_log_set_putchar(myPutChar);
-    runTerminal();
-    runControlLink();
+    //runTerminal();
+    runControlLink(SIIAM_HOST);
 }
 
 extern "C"{

@@ -23,8 +23,6 @@
 
 #include "wifi_connect.h"
 
-#define EXAMPLE_ESP_WIFI_SSID      "WLAN-396851"
-#define EXAMPLE_ESP_WIFI_PASS      "70235564365384924196"
 #define EXAMPLE_ESP_MAXIMUM_RETRY  5
 
 static EventGroupHandle_t s_wifi_event_group;
@@ -100,11 +98,9 @@ void wifi_init_sta(const char* ssid, const char* password)
     /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
      * happened. */
     if (bits & WIFI_CONNECTED_BIT) {
-        ESP_LOGI(WIFI_TAG, "connected to ap SSID:%s password:%s",
-                 EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+        ESP_LOGI(WIFI_TAG, "connected to ap SSID:%s", ssid);
     } else if (bits & WIFI_FAIL_BIT) {
-        ESP_LOGI(WIFI_TAG, "Failed to connect to SSID:%s, password:%s",
-                 EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+        ESP_LOGI(WIFI_TAG, "Failed to connect to SSID:%s", ssid);
     } else {
         ESP_LOGE(WIFI_TAG, "UNEXPECTED EVENT");
     }
