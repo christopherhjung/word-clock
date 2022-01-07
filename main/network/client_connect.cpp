@@ -31,18 +31,19 @@
 
 static const char *TAG = "example";
 
-static void http_get_task(void *pvParameters)
+[[noreturn]] static void http_get_task(void *pvParameters)
 {
     const struct addrinfo hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
     };
+
     struct addrinfo *res;
     struct in_addr *addr;
     int s, r;
     char recv_buf[64];
 
-    while(1) {
+    while(true) {
         int err = getaddrinfo(WEB_SERVER, "9600", &hints, &res);
 
         if(err != 0 || res == NULL) {

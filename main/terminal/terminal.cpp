@@ -99,12 +99,13 @@ void runTerminal()
     /* Figure out if the terminal supports escape sequences */
     int probe_status = linenoiseProbe();
     if (probe_status) { /* zero indicates success */
-        printf("\n"
+        /*printf("\n"
                "Your terminal application does not support escape sequences.\n"
                "Line editing and history features are disabled.\n"
                "On Windows, try using Putty instead.\n");
         linenoiseSetDumbMode(1);
-        prompt = "esp8266> ";
+        prompt = "esp8266> ";*/
+        return;
     }
 
     while(true) {

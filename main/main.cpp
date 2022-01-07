@@ -15,6 +15,12 @@
 
 #include "terminal/terminal.h"
 #include "config.h"
+#include "core.h"
+#include "neopixel/neopixel.h"
+
+int myPutChar(int cha){
+    return cha;
+}
 
 void run(){
     ESP_ERROR_CHECK (nvs_flash_init());
@@ -27,9 +33,9 @@ void run(){
     ESP_LOGI("wifi", "ESP_WIFI_MODE_STA" ) ;
     wifi_init_sta ( "WLAN-396851" , "70235564365384924196" ) ;
 
-    runControlLink();
-
+    esp_log_set_putchar(myPutChar);
     runTerminal();
+    runControlLink();
 }
 
 extern "C"{

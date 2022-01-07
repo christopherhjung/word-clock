@@ -59,6 +59,7 @@ static int get_version(int argc, char **argv)
         if(strcmp(argv[1], "set") == 0){
             char* newToken = argv[2];
             setVersion(newToken);
+            saveConfig();
         }else{
             printf("Unknown command %s\n", argv[1]);
         }
@@ -70,8 +71,6 @@ static int get_version(int argc, char **argv)
             printf("No version!\n");
         }
     }
-
-    saveConfig();
 
     return 0;
 }
@@ -95,6 +94,7 @@ static int token(int argc, char **argv)
         if(strcmp(argv[1], "set") == 0){
             char* newToken = argv[2];
             setToken(newToken);
+            saveConfig();
         }else{
             printf("Unknown command %s\n", argv[1]);
         }
@@ -107,7 +107,6 @@ static int token(int argc, char **argv)
         }
     }
 
-    saveConfig();
 
     return 0;
 }

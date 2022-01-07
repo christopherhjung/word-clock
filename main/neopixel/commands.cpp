@@ -6,7 +6,6 @@
 #include "commands.h"
 #include "internal/NeoEsp8266RtosDmaMethod.h" // instead of NeoPixelBus.h
 
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -62,7 +61,8 @@ typedef struct neo_pixel{
 
 
 neo_pixel_t* neoPixel;
-static void runNeoPixel(void *pvParameters){
+
+[[noreturn]] static void runNeoPixel(void *pvParameters){
     while(true){
         neoPixel->animate *= 0.9;
         pixel_t *sources = neoPixel->sources;

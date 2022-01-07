@@ -106,8 +106,8 @@ char* getString(cJSON* json, const char *key){
     return entry->valuestring;
 }
 
-void setVersion(const char *api){
-    setOrReplace(config, "version", api);
+void setVersion(const char *version){
+    setOrReplace(config, "version", version);
 }
 
 const char* getVersion(){
