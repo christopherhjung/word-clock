@@ -64,7 +64,7 @@ static int get_version(int argc, char **argv)
             printf("Unknown command %s\n", argv[1]);
         }
     }else{
-        char *token = getVersion();
+        const char *token = getVersion();
         if(token != NULL){
             printf("%s\n", token);
         }else{
@@ -99,7 +99,7 @@ static int token(int argc, char **argv)
             printf("Unknown command %s\n", argv[1]);
         }
     }else{
-        char *token = getToken();
+        const char *token = getToken();
         if(token != NULL){
             printf("%s\n", token);
         }else{

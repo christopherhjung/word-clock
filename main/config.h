@@ -4,13 +4,13 @@ void readFile(const char* path, char *buffer, int size);
 
 void mount(void);
 
-void setVersion(const char *api);
+void setVersion(const char *version);
 
-char* getVersion();
+const char* getVersion();
 
 void setToken(const char* token);
 
-char* getToken();
+const char* getToken();
 
 void loadConfig();
 

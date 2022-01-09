@@ -258,9 +258,16 @@ const char *api = "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79
 
 void initSiiam(){
     initLibraries();
+    ESP_LOGI("core", "init siiam");
 
     const char* version = getVersion();
-    ESP_LOGI("core", "Read version: %s", version);
+    if(version != NULL){
+        ESP_LOGI("core", "Read version: %s", version);
+    }else{
+        version = "1.0.0";
+        setVersion(version);
+        ESP_LOGI("core", "Set init version: %s", version);
+    }
 
     const char* token = getToken();
     if(token == NULL){

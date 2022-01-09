@@ -15,7 +15,8 @@
 #include "esp_event.h"
 #include "nvs.h"
 #include "nvs_flash.h"
-
+#include "core.h"
+#include "config.h"
 #include "cJSON.h"
 
 static const char *TAG = "example";
@@ -34,6 +35,17 @@ void readFile(const char* path, char *buffer, int size){
     fgets(buffer, size , f);
     fclose(f);
 }
+
+void writeFile(const char* path, const char *buffer){
+    FILE *f = fopen(path, "w+");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for writing");
+        return;
+    }
+    fprintf(f, buffer);
+    fclose(f);
+}
+
 
 void mount(void)
 {
@@ -71,7 +83,8 @@ void mount(void)
 
 void loadConfig(){
     cJSON_Delete(config);
-    FILE *f = fopen("/spiffs/config.json", "rb");
+    FILE *f = fopen("/spiffs/config.json", "r+");
+
     if(f != NULL){
         fseek(f, 0, SEEK_END);
         long fsize = ftell(f);
@@ -83,8 +96,13 @@ void loadConfig(){
         string[fsize] = 0;
 
         config = cJSON_Parse(string);
+
+        if(config == NULL){
+            config = cJSON_Parse("{}");
+            saveConfig();
+        }
     }else{
-        config = cJSON_Parse("{\"api\": \"test\"}");
+        config = cJSON_Parse("{}");
     }
 }
 
@@ -121,17 +139,6 @@ void setToken(const char *token){
 const char* getToken(){
     return getString(config, "token");
 }
-
-void writeFile(const char* path, const char *buffer){
-    FILE *f = fopen(path, "w");
-    if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open file for writing");
-        return;
-    }
-    fprintf(f, buffer);
-    fclose(f);
-}
-
 
 void saveConfig(){
     char *json = cJSON_Print(config);
