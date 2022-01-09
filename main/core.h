@@ -43,7 +43,7 @@ void sendString(const char *str);
 
 void startFrame(uint8_t** ptr, uint16_t command);
 
-void endFrame( uint8_t** ptr, uint8_t** start);
+void endFrame( uint8_t* ptr, uint8_t* start);
 
 int sendFrame(const uint8_t* arr, size_t len);
 

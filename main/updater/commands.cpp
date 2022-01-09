@@ -43,7 +43,7 @@ uint32_t writtenSize;
 float lastPercent;
 void io_siiam$update_begin$1_0_0(uint8_t length, uint8_t* frame){
     uint32_t size = nextUInt32(&frame);
-    ESP_LOGI(TAG, "Starting OTA example");
+    ESP_LOGI(TAG, "Starting OTA of size %d", size);
 
     const esp_partition_t *to_boot;
 

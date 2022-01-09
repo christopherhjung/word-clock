@@ -47,12 +47,11 @@ void io_siiam$io_digitalRead$1_0_0(uint8_t length, uint8_t* frame){
         uint32_t readIndex = nextUInt32(&frame);
         int result = gpio_get_level((gpio_num_t)pinNumber);
 
-        uint8_t *begin = sendBuffer;
         uint8_t *ptr = sendBuffer;
         startFrame(&ptr, command);
         appendUInt32(&ptr, readIndex);
         appendUInt8(&ptr, result);
-        endFrame(&ptr, &begin);
+        endFrame(ptr, sendBuffer);
         sendFrame(sendBuffer, sendBuffer[0]);
     }
 }

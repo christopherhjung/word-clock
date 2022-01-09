@@ -24,7 +24,7 @@
 #define SIIAM_WIFI_SSID "WLAN-396851"
 #define SIIAM_WIFI_PASSWORD "70235564365384924196"
 #define SIIAM_HOST "192.168.2.176"
-#define SIIAM_TOKEN "9328c500a8c6384bcc271fb10be86fb21a05ff71b314ed59d5824f5c006d2679"
+#define SIIAM_TOKEN "d5912e86f68a2f4c2cd84cf14b563f7ddc22faf29767d87920503d5ab5b80492"
 
 int myPutChar(int cha){
     return cha;
@@ -42,7 +42,7 @@ void run(){
     setToken(SIIAM_TOKEN);
     wifi_init_sta ( SIIAM_WIFI_SSID , SIIAM_WIFI_PASSWORD ) ;
 
-    esp_log_set_putchar(myPutChar);
+    //esp_log_set_putchar(myPutChar);
     //runTerminal();
     runControlLink(SIIAM_HOST);
 }

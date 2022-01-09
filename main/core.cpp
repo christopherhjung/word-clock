@@ -124,21 +124,16 @@ void startFrame(uint8_t** ptr, uint16_t command){
     appendUInt16(ptr, command);
 }
 
-void endFrame( uint8_t** ptr, uint8_t** start) {
-    appendUInt8(ptr, 0x7f);
-    *(*(uint16_t**)start) = *ptr - *start;
+void endFrame( uint8_t* ptr, uint8_t* start) {
+    appendUInt8(&ptr, 0x7f);
+    *(uint16_t*)start = ptr - start;
 }
 
-
-
-
-
 void notifyState(uint8_t status){
-    uint8_t *begin = sendBuffer;
     uint8_t *ptr = sendBuffer;
     startSysFrame(&ptr, 0);
     appendUInt8(&ptr, status);
-    endFrame(&ptr, &begin);
+    endFrame(ptr, sendBuffer);
     sendFrame(sendBuffer, sendBuffer[0]);
 }
 
@@ -148,11 +143,10 @@ void handleCoreInit(uint8_t length, uint8_t* frame){ //initialize
 }
 
 void echo(const char* str) {
-    uint8_t *begin = sendBuffer;
     uint8_t *ptr = sendBuffer;
     startSysFrame(&ptr, 2);
     appendString(&ptr, str);
-    endFrame(&ptr, &begin);
+    endFrame(ptr, sendBuffer);
     sendFrame(sendBuffer, sendBuffer[0]);
 }
 
@@ -175,6 +169,21 @@ void restart(uint8_t length, uint8_t* frame){ //initialize
     esp_restart();
 }
 
+void alive(uint8_t length, uint8_t* frame){ //initialize
+    static int32_t command = -2;
+
+    if(command == -2){
+        command = lookupCommandCode("io.siiam:core.alive:1.0.0");
+    }
+
+    if(command >= 0){
+        uint8_t *ptr = sendBuffer;
+        startFrame(&ptr, command);
+        endFrame(ptr, sendBuffer);
+        sendFrame(sendBuffer, sendBuffer[0]);
+    }
+}
+
 void initLibraries(){
     registerLibrary("io.siiam:core.init:1.0.0", handleCoreInit, false);
 
@@ -182,12 +191,11 @@ void initLibraries(){
     registerLibrary("io.siiam:io.digitalWrite:1.0.0", io_siiam$io_digitalWrite$1_0_0, true);
     registerLibrary("io.siiam:io.digitalRead:1.0.0", io_siiam$io_digitalRead$1_0_0, true);
 
-
     registerLibrary("io.siiam:core.token.assign:1.0.0", assignToken, false);
     registerLibrary("io.siiam:core.restart:1.0.0", restart, false);
+    registerLibrary("io.siiam:core.alive:1.0.0", alive, false);
 
-
-#ifdef NEOPIXEL
+    #ifdef NEOPIXEL
         registerLibrary("io.siiam:neopixel.create:1.0.0", io_siiam$neopixel_create$1_0_0, true);
         registerLibrary("io.siiam:neopixel.set:1.0.0", io_siiam$neopixel_set$1_0_0, true);
         registerLibrary("io.siiam:neopixel.show:1.0.0", io_siiam$neopixel_show$1_0_0, true);
@@ -210,12 +218,11 @@ void initLibraries(){
 }
 
 void notifyLibrary(uint8_t command, const char* str){
-    uint8_t *begin = sendBuffer;
     uint8_t *ptr = sendBuffer;
     startSysFrame(&ptr, 1);
     appendUInt8(&ptr, command);
     appendString(&ptr, str);
-    endFrame(&ptr, &begin);
+    endFrame(ptr, sendBuffer);
     sendFrame(sendBuffer, sendBuffer[0]);
 }
 
@@ -226,11 +233,10 @@ void notifyLibraries(){
 }
 
 void ackFrame(uint32_t id){
-    uint8_t *begin = sendBuffer;
     uint8_t *ptr = sendBuffer;
     startSysFrame(&ptr, 3);
     appendUInt32(&ptr, id);
-    endFrame(&ptr, &begin);
+    endFrame(ptr, sendBuffer);
     sendFrame(sendBuffer, sendBuffer[0]);
 }
 
