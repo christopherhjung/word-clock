@@ -8,4 +8,4 @@
 */
 
 
-void runControlLink(const char*);
+void runControlLink(const char*, const char*);

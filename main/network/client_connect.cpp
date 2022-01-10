@@ -27,9 +27,11 @@
 
 static const char *TAG = "example";
 
+const char* siiam_host = NULL;
+const char* siiam_port = 0;
+
 [[noreturn]] static void http_get_task(void *pvParameters)
 {
-    char* host = (char*)pvParameters;
     const struct addrinfo hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
@@ -41,7 +43,7 @@ static const char *TAG = "example";
     char recv_buf[64];
 
     while(true) {
-        int err = getaddrinfo(host, "9600", &hints, &res);
+        int err = getaddrinfo(siiam_host, siiam_port, &hints, &res);
 
         if(err != 0 || res == NULL) {
             ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
@@ -83,8 +85,8 @@ static const char *TAG = "example";
         ESP_LOGI(TAG, "Starting again!");
     }
 }
-
-
-void runControlLink(const char* host){
-    xTaskCreate(&http_get_task, "http_get_task" , 16384 , (void*)host , 5 , NULL ) ;
+void runControlLink(const char* host, const char* port){
+    siiam_host = host;
+    siiam_port = port;
+    xTaskCreate(&http_get_task, "http_get_task" , 16384 , NULL , 5 , NULL ) ;
 }

@@ -185,6 +185,14 @@ void alive(uint8_t length, uint8_t* frame){ //initialize
 }
 
 void initLibraries(){
+    static bool initialized = false;
+
+    if(initialized){
+        return;
+    }
+
+    initialized = true;
+
     registerLibrary("io.siiam:core.init:1.0.0", handleCoreInit, false);
 
     registerLibrary("io.siiam:io.pinMode:1.0.0", io_siiam$io_pinMode$1_0_0, true);
@@ -255,6 +263,8 @@ void handle() {
 }
 
 const char *api = "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962";
+
+
 
 void initSiiam(){
     initLibraries();
