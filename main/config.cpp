@@ -186,17 +186,37 @@ int setupWifi(wifi_config_t *wifi_config){
                 memcpy(wifi_config->sta.password, password, strlen(password));
 
                 return 0;
-            }else{
-                ESP_LOGE("config", "No type");
             }
         }
 
-        ESP_LOGE("config", "No wifi");
     }
 
-    ESP_LOGE("config", "No networks");
 
     return -1;
+}
+
+tcp_server_t getServer(){
+    const cJSON *servers = cJSON_GetObjectItem(config, "servers");
+
+    tcp_server_t result;
+
+    if(servers != NULL){
+        int size = cJSON_GetArraySize(servers);
+
+        for(int i = 0 ; i < size ; i++){
+            cJSON *server = cJSON_GetArrayItem(servers, i);
+
+            const cJSON *serverType = cJSON_GetObjectItem(server, "type");
+
+            if(serverType != NULL && strcmp(serverType->valuestring, "tcp") == 0){
+                result.host = cJSON_GetObjectItem(server, "host")->valuestring;
+                result.port = cJSON_GetObjectItem(server, "port")->valuestring;
+                break;
+            }
+        }
+    }
+
+    return result;
 }
 
 
@@ -207,6 +227,10 @@ void setVersion(const char *version){
 
 const char* getVersion(){
     return getString(config, "version");
+}
+
+const char* getApi(){
+    return getString(config, "api");
 }
 
 void setToken(const char *token){

@@ -262,10 +262,6 @@ void handle() {
     ackFrame(id);
 }
 
-const char *api = "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962";
-
-
-
 void initSiiam(){
     initLibraries();
     ESP_LOGI("core", "init siiam");
@@ -275,19 +271,19 @@ void initSiiam(){
         ESP_LOGI("core", "Read version: %s", version);
     }else{
         version = "1.0.0";
-        setVersion(version);
         ESP_LOGI("core", "Set init version: %s", version);
     }
 
     const char* token = getToken();
     if(token == NULL){
         ESP_LOGI("core", "No token");
-        token = "0000000000000000000000000000000000000000000000000000000000000000";
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        esp_restart();
     }else{
         ESP_LOGI("core", "Read token: %s", token);
     }
 
-    if(sendHex(api, 64) != 0){
+    if(sendHex(getApi(), 64) != 0){
         return;
     }
 

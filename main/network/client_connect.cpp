@@ -23,6 +23,7 @@
 
 #include "wifi_connect.h"
 #include "../core.h"
+#include "../config.h"
 
 
 static const char *TAG = "example";
@@ -43,7 +44,9 @@ const char* siiam_port = 0;
     char recv_buf[64];
 
     while(true) {
-        int err = getaddrinfo(siiam_host, siiam_port, &hints, &res);
+        tcp_server_t server = getServer();
+
+        int err = getaddrinfo(server.host, server.port, &hints, &res);
 
         if(err != 0 || res == NULL) {
             ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
@@ -85,8 +88,6 @@ const char* siiam_port = 0;
         ESP_LOGI(TAG, "Starting again!");
     }
 }
-void runControlLink(const char* host, const char* port){
-    siiam_host = host;
-    siiam_port = port;
+void runControlLink(){
     xTaskCreate(&http_get_task, "http_get_task" , 16384 , NULL , 5 , NULL ) ;
 }

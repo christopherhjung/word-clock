@@ -21,12 +21,6 @@
 
 #include "network/client_connect.h"
 
-#define SIIAM_WIFI_SSID "WLAN-396851"
-#define SIIAM_WIFI_PASSWORD "70235564365384924196"
-#define SIIAM_HOST "siiam.uber.space"
-#define SIIAM_PORT "42360"
-#define SIIAM_TOKEN "66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"
-
 int myPutChar(int cha){
     return cha;
 }
@@ -51,7 +45,7 @@ void run(){
 
     //esp_log_set_putchar(myPutChar);
     //runTerminal();
-    runControlLink(SIIAM_HOST, SIIAM_PORT);
+    runControlLink();
 }
 
 extern "C"{
