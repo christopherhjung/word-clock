@@ -22,6 +22,7 @@
 #include "lwip/sys.h"
 
 #include "wifi_connect.h"
+#include "../config.h"
 
 #define EXAMPLE_ESP_MAXIMUM_RETRY  5
 
@@ -57,7 +58,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
-void wifi_init_sta(const char* ssid, const char* password)
+void wifi_init_sta()
 {
     s_wifi_event_group = xEventGroupCreate();
 
@@ -70,8 +71,12 @@ void wifi_init_sta(const char* ssid, const char* password)
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));
 
     wifi_config_t wifi_config = { .sta = {} };
-    memcpy(wifi_config.sta.ssid, ssid, strlen(ssid));
-    memcpy(wifi_config.sta.password, password, strlen(password));
+
+    if(setupWifi(&wifi_config) != 0){
+        ESP_LOGE(WIFI_TAG, "Failed loading error");
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        esp_restart();
+    }
 
     /* Setting a password implies station will connect to all security modes including WEP/WPA.
         * However these modes are deprecated and not advisable to be used. Incase your Access point
@@ -98,9 +103,9 @@ void wifi_init_sta(const char* ssid, const char* password)
     /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
      * happened. */
     if (bits & WIFI_CONNECTED_BIT) {
-        ESP_LOGI(WIFI_TAG, "connected to ap SSID:%s", ssid);
+        ESP_LOGI(WIFI_TAG, "connected to ap SSID:%s", wifi_config.sta.ssid);
     } else if (bits & WIFI_FAIL_BIT) {
-        ESP_LOGI(WIFI_TAG, "Failed to connect to SSID:%s", ssid);
+        ESP_LOGI(WIFI_TAG, "Failed to connect to SSID:%s", wifi_config.sta.ssid);
     } else {
         ESP_LOGE(WIFI_TAG, "UNEXPECTED EVENT");
     }
