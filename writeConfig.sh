@@ -2,16 +2,16 @@
 
 SERIAL=${1:-"/dev/cu.usbserial-1110"}
 
-echo $SERIAL
-
-set PATH "$PATH:/Users/chris/xtensa-lx106-elf/bin"
-git submodule update --init --recursive
-set IDF_PATH=$(realpath ESP8266_RTOS_SDK)
-
+git submodule update --init
 brew install wget
 
 wget https://dl.espressif.com/dl/xtensa-lx106-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
 tar -xf xtensa-lx106-elf-gcc8_4_0-esp-2020r3-macos.tar.gz
+
+set PATH "$PATH:$(realpath xtensa-lx106-elf/bin)"
+git submodule update --init --recursive
+set IDF_PATH=$(realpath ESP8266_RTOS_SDK)
+
 
 make -j8 &&
 ./mkspiffs -p 256 -c filesystem -s 0x1F0000 build/spiffs-image.bin &&
