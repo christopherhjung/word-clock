@@ -1,3 +1,7 @@
-[submodule "spiffs"]
+[submodule "ESP8266_RTOS_SDK"]
 	path = ESP8266_RTOS_SDK
 	url = https://github.com/espressif/ESP8266_RTOS_SDK
+
+[submodule "NeoPixelBus_ESP8266_RTOS"]
+	path = NeoPixelBus_ESP8266_RTOS
+	url = https://github.com/THKDev/NeoPixelBus_ESP8266_RTOS
