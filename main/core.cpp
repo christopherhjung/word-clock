@@ -198,6 +198,7 @@ void initLibraries(){
     registerLibrary("io.siiam:io.pinMode:1.0.0", io_siiam$io_pinMode$1_0_0, true);
     registerLibrary("io.siiam:io.digitalWrite:1.0.0", io_siiam$io_digitalWrite$1_0_0, true);
     registerLibrary("io.siiam:io.digitalRead:1.0.0", io_siiam$io_digitalRead$1_0_0, true);
+    registerLibrary("io.siiam:io.analogRead:1.0.0", io_siiam$io_analogRead$1_0_0, true);
 
     registerLibrary("io.siiam:core.token.assign:1.0.0", assignToken, false);
     registerLibrary("io.siiam:core.restart:1.0.0", restart, false);
