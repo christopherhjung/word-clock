@@ -32,3 +32,5 @@ int setupWifi(wifi_config_t *wifi_config);
 void listFiles(const char*);
 
 tcp_server_t getServer();
+
+void init_config();

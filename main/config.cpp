@@ -49,6 +49,22 @@
 #include "freertos/task.h"
 #include "ff.h"
 
+#include "freertos/semphr.h"
+#include <string.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/event_groups.h"
+#include "esp_system.h"
+#include "esp_log.h"
+#include "esp_netif.h"
+#include "esp_event.h"
+#include "esp_wifi.h"
+#include "nvs.h"
+#include "nvs_flash.h"
+
+#include "lwip/err.h"
+#include "lwip/sys.h"
+
 static const char *TAG = "example";
 
 cJSON* config = NULL;
@@ -129,25 +145,27 @@ char* loadFile(const char* path){
     }
 }
 
+xSemaphoreHandle config_lock = 0;
+void init_config(){
+    config_lock = xSemaphoreCreateBinary();  // start of task
+}
+
 void loadConfig(){
+    xSemaphoreTake(config_lock, 0);
     cJSON_Delete(config);
     char* json = loadFile("/spiffs/config.json");
 
     if(json != NULL){
         config = cJSON_Parse(json);
-        ESP_LOGI(TAG, json);
         free(json);
+    }
 
-
-        if(config == NULL){
-            ESP_LOGI(TAG, "error json");
-            config = cJSON_Parse("{}");
-            //saveConfig();
-        }
-    }else{
-        ESP_LOGI(TAG, "no json");
+    if(config == NULL){
+        ESP_LOGI(TAG, "error json");
         config = cJSON_Parse("{}");
     }
+
+    xSemaphoreGive(config_lock);
 }
 
 void setOrReplace(cJSON* json, const char *key, const char* value){
@@ -168,34 +186,56 @@ char* getString(cJSON* json, const char *key){
     return entry->valuestring;
 }
 
-int setupWifi(wifi_config_t *wifi_config){
-    const cJSON *networks = cJSON_GetObjectItem(config, "networks");
-
+int nextArrayElement(const cJSON *array, int nextElement, bool (*fun)(const cJSON*)){
+    int result = -1;
     if(networks != NULL){
         int size = cJSON_GetArraySize(networks);
 
         for(int i = 0 ; i < size ; i++){
-            cJSON *network = cJSON_GetArrayItem(networks, i);
+            int current = ( i + nextElement ) % size;
+            cJSON *network = cJSON_GetArrayItem(networks, current);
+
+            if(fun(network)){
+                result = ( current + 1 ) % size;
+                break;
+            }
+        }
+
+    }
+
+    return result;
+}
+
+int setupWifi(wifi_config_t *wifi_config, int nextWifi){
+    xSemaphoreTake(config_lock, 0);
+    const cJSON *networks = cJSON_GetObjectItem(config, "networks");
+    int result = -1;
+    if(networks != NULL){
+        int size = cJSON_GetArraySize(networks);
+
+        for(int i = 0 ; i < size ; i++){
+            int current = ( i + nextWifi ) % size;
+            cJSON *network = cJSON_GetArrayItem(networks, current);
 
             const cJSON *networkType = cJSON_GetObjectItem(network, "type");
 
             if(networkType != NULL && strcmp(networkType->valuestring, "wifi") == 0){
                 const char *ssid = cJSON_GetObjectItem(network, "ssid")->valuestring;
                 const char *password = cJSON_GetObjectItem(network, "password")->valuestring;
-                memcpy(wifi_config->sta.ssid, ssid, strlen(ssid));
-                memcpy(wifi_config->sta.password, password, strlen(password));
-
-                return 0;
+                printf("%s - %s\n", ssid, password );
+                result = ( current + 1 ) % size;
+                break;
             }
         }
 
     }
 
-
-    return -1;
+    xSemaphoreGive(config_lock);
+    return result;
 }
 
 tcp_server_t getServer(){
+    xSemaphoreTake(config_lock, 0);
     const cJSON *servers = cJSON_GetObjectItem(config, "servers");
 
     tcp_server_t result;
@@ -216,34 +256,50 @@ tcp_server_t getServer(){
         }
     }
 
+    xSemaphoreGive(config_lock);
     return result;
 }
 
 
 
 void setVersion(const char *version){
+    xSemaphoreTake(config_lock, 0);
     setOrReplace(config, "version", version);
+    xSemaphoreGive(config_lock);
 }
 
 const char* getVersion(){
-    return getString(config, "version");
+    xSemaphoreTake(config_lock, 0);
+    const char* version = getString(config, "version");
+    xSemaphoreGive(config_lock);
+    return version;
 }
 
 const char* getApi(){
-    return getString(config, "api");
+    xSemaphoreTake(config_lock, 0);
+    const char* api = getString(config, "api");
+    xSemaphoreGive(config_lock);
+    return api;
 }
 
 void setToken(const char *token){
+    xSemaphoreTake(config_lock, 0);
     setOrReplace(config, "token", token);
+    xSemaphoreGive(config_lock);
 }
 
 const char* getToken(){
-    return getString(config, "token");
+    xSemaphoreTake(config_lock, 0);
+    const char* token = getString(config, "token");
+    xSemaphoreGive(config_lock);
+    return token;
 }
 
 void saveConfig(){
+    xSemaphoreTake(config_lock, 0);
     char *json = cJSON_Print(config);
     writeFile("/spiffs/config.json", json);
+    xSemaphoreGive(config_lock);
     free(json);
 }
 

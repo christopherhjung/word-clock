@@ -1,11 +1,11 @@
 {
   "api": "eccb238996d80df0218bfff6bda602368592c7ec3567367a37bde1acd7d79962",
-  "token": "66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925",
+  "token": "7aed46df4a8a3b1ae5d2fc95126c8e617a0ce6b86ab1d6a7ff459183203b2087",
   "version": "1.0.0",
   "servers": [
     {
       "type": "tcp",
-      "host": "siiam.uber.space",
+      "host": "MacBook-Pro-von-Christopher.local",
       "port": "42360"
     }
   ],

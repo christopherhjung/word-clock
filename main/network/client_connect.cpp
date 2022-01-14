@@ -40,7 +40,7 @@ const char* siiam_port = 0;
 
     struct addrinfo *res;
     struct in_addr *addr;
-    int s, r;
+    int s;
     char recv_buf[64];
 
     while(true) {
