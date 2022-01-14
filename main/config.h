@@ -27,10 +27,10 @@ void loadConfig();
 
 void saveConfig();
 
-int setupWifi(wifi_config_t *wifi_config);
-
 void listFiles(const char*);
 
-tcp_server_t getServer();
+void setup_wifi(wifi_config_t *wifi_config, int *wifi_index);
+
+void setup_server(tcp_server_t* server, int *server_index );
 
 void init_config();

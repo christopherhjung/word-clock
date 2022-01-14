@@ -186,81 +186,68 @@ char* getString(cJSON* json, const char *key){
     return entry->valuestring;
 }
 
-int nextArrayElement(const cJSON *array, int nextElement, bool (*fun)(const cJSON*)){
-    int result = -1;
-    if(networks != NULL){
-        int size = cJSON_GetArraySize(networks);
+template<class T>
+void nextArrayElement(const cJSON *array, int* next_element, T* ref, bool (*fun)(const cJSON*, T*)){
+    if(array != NULL){
+        int size = cJSON_GetArraySize(array);
 
-        for(int i = 0 ; i < size ; i++){
-            int current = ( i + nextElement ) % size;
-            cJSON *network = cJSON_GetArrayItem(networks, current);
+        for(int offset = 0 ; offset < size ; offset++){
+            int current = (*next_element + offset ) % size;
+            cJSON *network = cJSON_GetArrayItem(array, current);
 
-            if(fun(network)){
-                result = ( current + 1 ) % size;
-                break;
+            if(fun(network, ref)){
+                *next_element = ( current + 1 ) % size;
+                return;
             }
         }
-
     }
 
-    return result;
+    *next_element = -1;
 }
 
-int setupWifi(wifi_config_t *wifi_config, int nextWifi){
+bool fetchWifi(const cJSON* network, wifi_config_t *wifi_config){
+    if(network != NULL){
+        const cJSON *networkType = cJSON_GetObjectItem(network, "type");
+
+        if(networkType != NULL && strcmp(networkType->valuestring, "wifi") == 0){
+            const char *ssid = cJSON_GetObjectItem(network, "ssid")->valuestring;
+            const char *password = cJSON_GetObjectItem(network, "password")->valuestring;
+            memcpy(wifi_config->sta.ssid, ssid, strlen(ssid));
+            memcpy(wifi_config->sta.password, password, strlen(password));
+            return true;
+        }else{
+            ESP_LOGI(TAG, "no wifi");
+        }
+    }
+
+    return false;
+}
+
+void setup_wifi(wifi_config_t *wifi_config, int* wifi_index){
     xSemaphoreTake(config_lock, 0);
     const cJSON *networks = cJSON_GetObjectItem(config, "networks");
-    int result = -1;
-    if(networks != NULL){
-        int size = cJSON_GetArraySize(networks);
-
-        for(int i = 0 ; i < size ; i++){
-            int current = ( i + nextWifi ) % size;
-            cJSON *network = cJSON_GetArrayItem(networks, current);
-
-            const cJSON *networkType = cJSON_GetObjectItem(network, "type");
-
-            if(networkType != NULL && strcmp(networkType->valuestring, "wifi") == 0){
-                const char *ssid = cJSON_GetObjectItem(network, "ssid")->valuestring;
-                const char *password = cJSON_GetObjectItem(network, "password")->valuestring;
-                printf("%s - %s\n", ssid, password );
-                result = ( current + 1 ) % size;
-                break;
-            }
-        }
-
-    }
-
+    nextArrayElement(networks, wifi_index, wifi_config, fetchWifi);
     xSemaphoreGive(config_lock);
-    return result;
 }
 
-tcp_server_t getServer(){
+bool fetchServer(const cJSON* server, tcp_server_t *tcp_server){
+    const cJSON *serverType = cJSON_GetObjectItem(server, "type");
+
+    if(serverType != NULL && strcmp(serverType->valuestring, "tcp") == 0){
+        tcp_server->host = cJSON_GetObjectItem(server, "host")->valuestring;
+        tcp_server->port = cJSON_GetObjectItem(server, "port")->valuestring;
+        return true;
+    }
+
+    return false;
+}
+
+void setup_server(tcp_server_t* server, int* server_index){
     xSemaphoreTake(config_lock, 0);
     const cJSON *servers = cJSON_GetObjectItem(config, "servers");
-
-    tcp_server_t result;
-
-    if(servers != NULL){
-        int size = cJSON_GetArraySize(servers);
-
-        for(int i = 0 ; i < size ; i++){
-            cJSON *server = cJSON_GetArrayItem(servers, i);
-
-            const cJSON *serverType = cJSON_GetObjectItem(server, "type");
-
-            if(serverType != NULL && strcmp(serverType->valuestring, "tcp") == 0){
-                result.host = cJSON_GetObjectItem(server, "host")->valuestring;
-                result.port = cJSON_GetObjectItem(server, "port")->valuestring;
-                break;
-            }
-        }
-    }
-
+    nextArrayElement(servers, server_index, server, fetchServer);
     xSemaphoreGive(config_lock);
-    return result;
 }
-
-
 
 void setVersion(const char *version){
     xSemaphoreTake(config_lock, 0);

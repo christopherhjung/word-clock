@@ -192,4 +192,6 @@ NeoPixelBus_ESP8266_RTOS
 xtensa-lx106-elf
 xtensa-lx106-elf-gcc*
 
+filesystem/config.json
+
 # End of https://www.toptal.com/developers/gitignore/api/clion,c++,macos,cmake

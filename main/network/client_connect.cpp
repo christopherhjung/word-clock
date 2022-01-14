@@ -25,11 +25,7 @@
 #include "../core.h"
 #include "../config.h"
 
-
-static const char *TAG = "example";
-
-const char* siiam_host = NULL;
-const char* siiam_port = 0;
+static const char *TAG = "tcp client";
 
 [[noreturn]] static void http_get_task(void *pvParameters)
 {
@@ -41,10 +37,17 @@ const char* siiam_port = 0;
     struct addrinfo *res;
     struct in_addr *addr;
     int s;
-    char recv_buf[64];
+
+    tcp_server_t server;
+    int current_server = 0;
 
     while(true) {
-        tcp_server_t server = getServer();
+        if(wifi_wait()){
+            current_server = 0;
+        }
+
+        setup_server(&server, &current_server);
+        ESP_LOGI(TAG, "Try connect to. IP=%s:%s", server.host, server.port);
 
         int err = getaddrinfo(server.host, server.port, &hints, &res);
 
@@ -83,6 +86,12 @@ const char* siiam_port = 0;
 
         ESP_LOGI(TAG, "ready");
         runSiiam();
+
+        int error = 0;
+        socklen_t len = sizeof (error);
+        int retval = getsockopt (s, SOL_SOCKET, SO_ERROR, &error, &len);
+
+        ESP_LOGI("core", "Error connection: %d %d" , error, retval);
 
         close(s);
         ESP_LOGI(TAG, "Starting again!");

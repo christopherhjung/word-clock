@@ -316,13 +316,27 @@ void initSiiam(){
     sync:;
 }
 
+ssize_t received;
 void runSiiam() {
+    received = 0;
     while(true){
-        ssize_t received = recv(stream, &buffer, 2, 0);
-        if(received == 2){
+        ssize_t done = recv(stream, buffer + received, 2 - received, 0);
+
+        if(done < 0){
+            return;
+        }
+
+        received += done;
+        if(received >= 2){
             uint16_t frameSize = *(uint16_t*)buffer;
             for(;;){
-                received += recv(stream, buffer + received, frameSize - received, 0);
+                done = recv(stream, buffer + received, frameSize - received, 0);
+
+                if(done < 0){
+                    return;
+                }
+
+                received += done;
                 if(received >= frameSize){
                     break;
                 }
@@ -331,13 +345,8 @@ void runSiiam() {
             if (buffer[received - 1] == 0x7f) {
                 handle();
             }
-        }else if(received == 0){
-            int error = 0;
-            socklen_t len = sizeof (error);
-            int retval = getsockopt (stream, SOL_SOCKET, SO_ERROR, &error, &len);
 
-            ESP_LOGI("core", "Error connection: %d %d" , error, retval);
-            break;
+            received = 0;
         }
     }
 }
