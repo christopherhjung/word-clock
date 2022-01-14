@@ -95,6 +95,8 @@ static const char *TAG = "tcp client";
 
         close(s);
         ESP_LOGI(TAG, "Starting again!");
+
+        esp_restart();
     }
 }
 void runControlLink(){
