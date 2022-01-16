@@ -220,7 +220,7 @@ bool fetchWifi(const cJSON* network, wifi_config_t *wifi_config){
             }
 
             unsigned int password_length = strlen(password) + 1;
-            if(password_length <= 32){
+            if(password_length <= 64){
                 memcpy(wifi_config->sta.password, password, password_length);
             }else{
                 return false;
