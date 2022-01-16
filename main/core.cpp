@@ -140,7 +140,6 @@ void notifyState(uint8_t status){
 int aliveCounter = 0;
 void alive(uint8_t length, uint8_t* frame){ //initialize
     static int32_t command = -2;
-    aliveCounter++;
 
     if(command == -2){
         command = lookupCommandCode("io.siiam:core.alive:1.0.0");
@@ -158,7 +157,7 @@ int lastWatchdog = 0;
 static void siiam_watchdog(void *pvParameters)
 {
     while(true){
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        vTaskDelay(30000 / portTICK_PERIOD_MS);
         if(aliveCounter != lastWatchdog){
             lastWatchdog = aliveCounter;
         }else{
@@ -170,7 +169,7 @@ static void siiam_watchdog(void *pvParameters)
 
 void handleCoreInit(uint8_t length, uint8_t* frame){ //initialize
     initialized = true;
-    xTaskCreate(&siiam_watchdog, "siiam_watchdog" , 1024 , NULL , 5 , NULL );
+    xTaskCreate(&siiam_watchdog, "siiam_watchdog" , 1024 , NULL , 2 , NULL );
     notifyState(Initialized);
 }
 
@@ -267,6 +266,7 @@ void ackFrame(uint32_t id){
 }
 
 void handle() {
+    aliveCounter++;
     uint8_t *ptr = buffer;
     uint16_t size = nextUInt16(&ptr);
     uint32_t id = nextUInt32(&ptr);
