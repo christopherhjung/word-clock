@@ -212,8 +212,20 @@ bool fetchWifi(const cJSON* network, wifi_config_t *wifi_config){
         if(networkType != NULL && strcmp(networkType->valuestring, "wifi") == 0){
             const char *ssid = cJSON_GetObjectItem(network, "ssid")->valuestring;
             const char *password = cJSON_GetObjectItem(network, "password")->valuestring;
-            memcpy(wifi_config->sta.ssid, ssid, strlen(ssid));
-            memcpy(wifi_config->sta.password, password, strlen(password));
+            unsigned int ssid_length = strlen(ssid) + 1;
+            if(ssid_length <= 32){
+                memcpy(wifi_config->sta.ssid, ssid, ssid_length);
+            }else{
+                return false;
+            }
+
+            unsigned int password_length = strlen(password) + 1;
+            if(password_length <= 32){
+                memcpy(wifi_config->sta.password, password, password_length);
+            }else{
+                return false;
+            }
+
             return true;
         }else{
             ESP_LOGI(TAG, "no wifi");
@@ -234,8 +246,23 @@ bool fetchServer(const cJSON* server, tcp_server_t *tcp_server){
     const cJSON *serverType = cJSON_GetObjectItem(server, "type");
 
     if(serverType != NULL && strcmp(serverType->valuestring, "tcp") == 0){
-        tcp_server->host = cJSON_GetObjectItem(server, "host")->valuestring;
-        tcp_server->port = cJSON_GetObjectItem(server, "port")->valuestring;
+        const char *host = cJSON_GetObjectItem(server, "host")->valuestring;
+        const char *port = cJSON_GetObjectItem(server, "port")->valuestring;
+
+        unsigned int host_length = strlen(host) + 1;
+        if(host_length <= 64){
+            memcpy(tcp_server->host, host, host_length);
+        }else{
+            return false;
+        }
+
+        unsigned int port_length = strlen(port) + 1;
+        if(port_length <= 8){
+            memcpy(tcp_server->port, port, port_length);
+        }else{
+            return false;
+        }
+
         return true;
     }
 

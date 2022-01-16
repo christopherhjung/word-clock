@@ -35,6 +35,7 @@ static const char *WIFI_TAG = "wifi station";
 
 int wifi_index = 0;
 wifi_config_t wifi_config = { .sta = {} };
+int conntection_trys = 0;
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
@@ -45,6 +46,11 @@ static void event_handler(void* arg, esp_event_base_t event_base,
                 xEventGroupClearBits( s_wifi_event_group, WIFI_CONNECTED_BIT );
                 ESP_LOGI(WIFI_TAG,"connect to the AP fail");
             }
+
+            if(conntection_trys > 20){
+                esp_restart();
+            }
+
             setup_wifi(&wifi_config, &wifi_index);
             if(wifi_index == -1){
                 ESP_LOGE(WIFI_TAG, "Failed loading error");
@@ -52,11 +58,13 @@ static void event_handler(void* arg, esp_event_base_t event_base,
                 esp_restart();
             }
 
+            conntection_trys++;
             ESP_LOGI(WIFI_TAG, "Try connect to. SSID=%s", wifi_config.sta.ssid);
             ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
             esp_wifi_connect();
         }
     }else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+        conntection_trys = 0;
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(WIFI_TAG, "got ip:%s", ip4addr_ntoa(&event->ip_info.ip));
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT | WIFI_RECONNECTED_BIT);

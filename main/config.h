@@ -1,8 +1,8 @@
 #include "esp_wifi_types.h"
 
 typedef struct {
-    const char* host = NULL;
-    const char* port = NULL;
+    char host[64];
+    char port[8];
 } tcp_server_t;
 
 void writeFile(const char* path, const char *buffer);
