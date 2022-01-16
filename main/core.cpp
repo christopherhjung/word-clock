@@ -137,8 +137,40 @@ void notifyState(uint8_t status){
     sendFrame(sendBuffer, sendBuffer[0]);
 }
 
+int aliveCounter = 0;
+void alive(uint8_t length, uint8_t* frame){ //initialize
+    static int32_t command = -2;
+    aliveCounter++;
+
+    if(command == -2){
+        command = lookupCommandCode("io.siiam:core.alive:1.0.0");
+    }
+
+    if(command >= 0){
+        uint8_t *ptr = sendBuffer;
+        startFrame(&ptr, command);
+        endFrame(ptr, sendBuffer);
+        sendFrame(sendBuffer, sendBuffer[0]);
+    }
+}
+
+int lastWatchdog = 0;
+static void siiam_watchdog(void *pvParameters)
+{
+    while(true){
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        if(aliveCounter != lastWatchdog){
+            lastWatchdog = aliveCounter;
+        }else{
+            ESP_LOGE("core", "Watchdog trigger");
+            esp_restart();
+        }
+    }
+}
+
 void handleCoreInit(uint8_t length, uint8_t* frame){ //initialize
     initialized = true;
+    xTaskCreate(&siiam_watchdog, "siiam_watchdog" , 1024 , NULL , 5 , NULL );
     notifyState(Initialized);
 }
 
@@ -167,21 +199,6 @@ void assignToken(uint8_t length, uint8_t* frame){ //initialize
 
 void restart(uint8_t length, uint8_t* frame){ //initialize
     esp_restart();
-}
-
-void alive(uint8_t length, uint8_t* frame){ //initialize
-    static int32_t command = -2;
-
-    if(command == -2){
-        command = lookupCommandCode("io.siiam:core.alive:1.0.0");
-    }
-
-    if(command >= 0){
-        uint8_t *ptr = sendBuffer;
-        startFrame(&ptr, command);
-        endFrame(ptr, sendBuffer);
-        sendFrame(sendBuffer, sendBuffer[0]);
-    }
 }
 
 void initLibraries(){
@@ -262,6 +279,7 @@ void handle() {
     }
     ackFrame(id);
 }
+
 
 void initSiiam(){
     initLibraries();

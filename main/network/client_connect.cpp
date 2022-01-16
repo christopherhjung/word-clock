@@ -27,7 +27,7 @@
 
 static const char *TAG = "tcp client";
 
-[[noreturn]] static void http_get_task(void *pvParameters)
+static void http_get_task(void *pvParameters)
 {
     const struct addrinfo hints = {
         .ai_family = AF_INET,

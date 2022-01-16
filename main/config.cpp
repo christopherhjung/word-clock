@@ -205,31 +205,49 @@ void nextArrayElement(const cJSON *array, int* next_element, T* ref, bool (*fun)
     *next_element = -1;
 }
 
-bool fetchWifi(const cJSON* network, wifi_config_t *wifi_config){
-    if(network != NULL){
-        const cJSON *networkType = cJSON_GetObjectItem(network, "type");
+bool has_value(const cJSON* json, const char* value){
+    return json->valuestring != NULL && strcmp(json->valuestring, value) == 0;
+}
 
-        if(networkType != NULL && strcmp(networkType->valuestring, "wifi") == 0){
-            const char *ssid = cJSON_GetObjectItem(network, "ssid")->valuestring;
-            const char *password = cJSON_GetObjectItem(network, "password")->valuestring;
-            unsigned int ssid_length = strlen(ssid) + 1;
-            if(ssid_length <= 32){
-                memcpy(wifi_config->sta.ssid, ssid, ssid_length);
-            }else{
-                return false;
+bool has_field_value(const cJSON* json, const char* field, const char* value){
+    if(json != NULL){
+        const cJSON *json_field = cJSON_GetObjectItem(json, field);
+
+        return has_value(json_field, value);
+    }
+
+    return false;
+}
+
+bool copy_field_value(const cJSON* json, const char* field, void* target, int max_length){
+    if(json != NULL){
+        const char *field_value = cJSON_GetObjectItem(json, field)->valuestring;
+
+        if(field_value != NULL){
+            unsigned int host_length = strlen(field_value) + 1;
+            if(host_length <= max_length){
+                memcpy(target, field_value, host_length);
+                return true;
             }
-
-            unsigned int password_length = strlen(password) + 1;
-            if(password_length <= 64){
-                memcpy(wifi_config->sta.password, password, password_length);
-            }else{
-                return false;
-            }
-
-            return true;
-        }else{
-            ESP_LOGI(TAG, "no wifi");
         }
+    }
+
+    return false;
+}
+
+bool fetch_wifi(const cJSON* network, wifi_config_t *wifi_config){
+    if(has_field_value(network, "type", "wifi")){
+        if(!copy_field_value(network, "ssid", wifi_config->sta.ssid, 32)){
+            return false;
+        }
+
+        if(!copy_field_value(network, "password", wifi_config->sta.password, 64)){
+            return false;
+        }
+
+        return true;
+    }else{
+        ESP_LOGI(TAG, "no wifi");
     }
 
     return false;
@@ -238,28 +256,18 @@ bool fetchWifi(const cJSON* network, wifi_config_t *wifi_config){
 void setup_wifi(wifi_config_t *wifi_config, int* wifi_index){
     xSemaphoreTake(config_lock, 0);
     const cJSON *networks = cJSON_GetObjectItem(config, "networks");
-    nextArrayElement(networks, wifi_index, wifi_config, fetchWifi);
+    nextArrayElement(networks, wifi_index, wifi_config, fetch_wifi);
     xSemaphoreGive(config_lock);
 }
 
-bool fetchServer(const cJSON* server, tcp_server_t *tcp_server){
-    const cJSON *serverType = cJSON_GetObjectItem(server, "type");
+bool fetch_server(const cJSON* server, tcp_server_t *tcp_server){
+    if(has_field_value(server, "type", "tcp")){
 
-    if(serverType != NULL && strcmp(serverType->valuestring, "tcp") == 0){
-        const char *host = cJSON_GetObjectItem(server, "host")->valuestring;
-        const char *port = cJSON_GetObjectItem(server, "port")->valuestring;
-
-        unsigned int host_length = strlen(host) + 1;
-        if(host_length <= 64){
-            memcpy(tcp_server->host, host, host_length);
-        }else{
+        if(!copy_field_value(server, "host", tcp_server->host, 64)){
             return false;
         }
 
-        unsigned int port_length = strlen(port) + 1;
-        if(port_length <= 8){
-            memcpy(tcp_server->port, port, port_length);
-        }else{
+        if(!copy_field_value(server, "port", tcp_server->port, 8)){
             return false;
         }
 
@@ -272,7 +280,7 @@ bool fetchServer(const cJSON* server, tcp_server_t *tcp_server){
 void setup_server(tcp_server_t* server, int* server_index){
     xSemaphoreTake(config_lock, 0);
     const cJSON *servers = cJSON_GetObjectItem(config, "servers");
-    nextArrayElement(servers, server_index, server, fetchServer);
+    nextArrayElement(servers, server_index, server, fetch_server);
     xSemaphoreGive(config_lock);
 }
 
