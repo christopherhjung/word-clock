@@ -44,5 +44,5 @@ static void sntp_report_task(void *arg)
 
 void sntp_report_init()
 {
-    xTaskCreate(sntp_report_task, "sntp_example_task", 2048, NULL, 10, NULL);
+    xTaskCreate(sntp_report_task, "sntp_report_task", 2048, NULL, 10, NULL);
 }
