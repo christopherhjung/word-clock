@@ -83,12 +83,6 @@ void wifi_init_sta()
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));
 
-    /*if(setup_wifi(&wifi_config, 0) != 0){
-        ESP_LOGE(WIFI_TAG, "Failed loading error");
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        esp_restart();
-    }*/
-
     /* Setting a password implies station will connect to all security modes including WEP/WPA.
         * However these modes are deprecated and not advisable to be used. Incase your Access point
         * doesn't support WPA2, these mode can be enabled by commenting below line */
@@ -102,7 +96,6 @@ void wifi_init_sta()
     ESP_ERROR_CHECK(esp_wifi_start() );
 
     ESP_LOGI(WIFI_TAG, "wifi_init_sta finished.");
-
 
     //ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler));
     //ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler));
