@@ -28,7 +28,6 @@
 #include "esp_event.h"
 #include "nvs.h"
 #include "nvs_flash.h"
-#include "core.h"
 #include "config.h"
 #include "cJSON.h"
 #include <stdio.h>
@@ -146,7 +145,7 @@ char* loadFile(const char* path){
 }
 
 xSemaphoreHandle config_lock = 0;
-void init_config(){
+void config_init(){
     config_lock = xSemaphoreCreateBinary();  // start of task
 }
 

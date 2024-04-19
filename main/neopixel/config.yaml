@@ -1,5 +1,0 @@
-group: "io.siiam"
-version: "1.0.0"
-commands:
-  - "neopixel.create"
-  - "neopixel.set"

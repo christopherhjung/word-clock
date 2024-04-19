@@ -33,4 +33,4 @@ void setup_wifi(wifi_config_t *wifi_config, int *wifi_index);
 
 void setup_server(tcp_server_t* server, int *server_index );
 
-void init_config();
+void config_init();

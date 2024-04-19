@@ -1,8 +1,6 @@
 
 
 #include "commands.h"
-#include "../core.h"
-#include "../protocol.h"
 
 #include <stdlib.h>
 #include <string.h>

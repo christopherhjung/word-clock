@@ -1,10 +1,4 @@
 
-#include "../protocol.h"
-#include "../time_lib.h"
-#include "../core.h"
-
-#include "commands.h"
-#include "internal/NeoEsp8266RtosDmaMethod.h" // instead of NeoPixelBus.h
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -14,10 +8,12 @@
 #include "esp_event.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+#include <string.h>
 
-#include <netdb.h>
-#include <sys/socket.h>
+#include "internal/NeoEsp8266RtosDmaMethod.h" // instead of NeoPixelBus.h
+#include "../time/time_lib.h"
 
+#include "display.h"
 
 Neo800KbpsMethod method(114, 3);
 
@@ -43,12 +39,19 @@ static const uint8_t gamma[256] = {
     218, 220, 223, 225, 227, 230, 232, 235, 237, 240, 242, 245, 247, 250, 252,
 255};
 
-typedef struct pixel{
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
-    uint8_t white;
-} pixel_t;
+uint8_t meanderMap[] = {
+    113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103,
+    92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
+    91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81,
+    70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+    69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59,
+    48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58,
+    47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37,
+    26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+    25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15,
+    4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+    3, 2, 1, 0
+};
 
 typedef struct neo_pixel{
     pixel_t *sources;
@@ -70,19 +73,17 @@ static void calcColor(pixel_t *source, pixel_t *target, pixel_t *current, float 
     }
 }
 
-[[noreturn]] static void runNeoPixel(void *pvParameters){
+[[noreturn]] static void display_task(void *pvParameters){
     while(true){
-        neoPixel->animate *= 0.9;
+        neoPixel->animate *= 0.5;
         pixel_t *sources = neoPixel->sources;
         pixel_t *targets = neoPixel->targets[neoPixel->target_index];
 
         uint8_t *pixels = method.getPixels();
-
-        pixel_t current;
-
         for(size_t index = 0 ; index < neoPixel->size ; index++ ){
             auto *source = sources + index;
             auto *target = targets + index;
+            pixel_t current;
             calcColor(source, target, &current, neoPixel->animate);
             pixels[index * 3 + 0] = current.green;
             pixels[index * 3 + 1] = current.red;
@@ -93,18 +94,7 @@ static void calcColor(pixel_t *source, pixel_t *target, pixel_t *current, float 
     }
 }
 
-void io_siiam$neopixel_create$1_0_0(uint8_t length, uint8_t* frame){
-    uint16_t oid = nextUInt16(&frame);
-    uint16_t pixel_size = nextUInt16(&frame);
-    uint8_t pin = nextUInt8(&frame);
-    /*
-    if(neoPixel != NULL){
-        delete[] neoPixel->sources;
-        delete[] neoPixel->targets[0];
-        delete[] neoPixel->targets[1];
-        delete neoPixel;
-    }*/
-
+void display_init(uint16_t pixel_size){
     neoPixel = new neo_pixel_t();
     neoPixel->sources = new pixel_t[pixel_size];
     neoPixel->targets[0] = new pixel_t[pixel_size];
@@ -114,42 +104,29 @@ void io_siiam$neopixel_create$1_0_0(uint8_t length, uint8_t* frame){
     neoPixel->size = pixel_size;
 
     method.Initialize();
-    xTaskCreate(&runNeoPixel, "run_neo_pixel" , 4096 , NULL , 2 , NULL ) ;
+    xTaskCreate(&display_task, "display_task" , 4096 , NULL , 2 , NULL ) ;
 }
 
-void io_siiam$neopixel_set$1_0_0(uint8_t length, uint8_t* frame){
-    nextUInt16(&frame);
-    auto size = nextUInt16(&frame);
-
-    uint8_t hiddenTarget = 1 - neoPixel->target_index;
-    pixel_t *targetPixels = neoPixel->targets[hiddenTarget];
-
-    for(;size > 0;size--){
-        uint16_t index = nextUInt16(&frame);
-        uint8_t red = nextUInt8(&frame);
-        uint8_t green = nextUInt8(&frame);
-        uint8_t blue = nextUInt8(&frame);
-
-        targetPixels[index] = {
-            .red = red,
-            .green = green,
-            .blue = blue,
-            .white = 0
-        };
-    }
-}
-
-void io_siiam$neopixel_show$1_0_0(uint8_t length, uint8_t* frame){
-    auto oid = nextUInt16(&frame);
-
+void display_update(){
     float animate = neoPixel->animate;
     uint8_t hiddenTarget = 1 - neoPixel->target_index;
     pixel *targetsNext = neoPixel->targets[hiddenTarget];
     pixel *targetsCurrent = neoPixel->targets[neoPixel->target_index];
-    foreach(index, neoPixel->size ){
+    for(int index = 0 ; index < neoPixel->size; index++ ){
         calcColor(neoPixel->sources + index, targetsCurrent + index, neoPixel->sources + index, animate );
         targetsCurrent[index] = targetsNext[index];
     }
     neoPixel->target_index = hiddenTarget;
     neoPixel->animate = 1;
+}
+
+void display_show(pixel_t* pixels){
+    uint8_t hiddenTarget = 1 - neoPixel->target_index;
+    pixel_t *targetPixels = neoPixel->targets[hiddenTarget];
+
+    for(int idx = neoPixel->size;idx >= 0;idx--){
+        targetPixels[meanderMap[idx]] = pixels[idx];
+    }
+
+    display_update();
 }
