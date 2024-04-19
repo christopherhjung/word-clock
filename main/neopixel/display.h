@@ -11,4 +11,4 @@ typedef struct pixel{
 
 void display_init(uint16_t pixel_size);
 void display_show(pixel_t* pixels);
-
+void display_set_brightness(float brightness);

@@ -10,6 +10,7 @@
 #include "time/sntp_report.h"
 #include "neopixel/display.h"
 #include "neopixel/renderer.h"
+#include "neopixel/dimmer.h"
 
 #include "driver/adc.h"
 
@@ -53,6 +54,7 @@ void run(){
     sntp_report_init();
 
     display_init(114);
+    dimmer_init();
     renderer_init();
 }
 

@@ -57,17 +57,19 @@ typedef struct neo_pixel{
     pixel_t *targets[2];
     uint8_t target_index = 0;
     float animate;
+    float current_brightness = 1.0;
+    float target_brightness = 1.0;
     size_t size;
 } neo_pixel_t;
 
 
 neo_pixel_t* neoPixel;
 
-static void interp_pixel(pixel_t *source, pixel_t *target, pixel_t *current, float animate){
+static void interp_pixel(pixel_t *source, pixel_t *target, pixel_t *current, float animate, float brightness){
     for(size_t color = 0 ; color < 3 ; color++ ){
         auto colorSource = (float)((uint8_t*)source)[color];
         auto colorTarget = (float)((uint8_t*)target)[color];
-        auto colorCurrent = (uint8_t)((colorSource - colorTarget) * animate + colorTarget);
+        auto colorCurrent = (uint8_t)(((colorSource - colorTarget) * animate + colorTarget) * brightness);
         ((uint8_t*)current)[color] = colorCurrent;
     }
 }
@@ -75,6 +77,10 @@ static void interp_pixel(pixel_t *source, pixel_t *target, pixel_t *current, flo
 [[noreturn]] static void display_task(void *pvParameters){
     while(true){
         neoPixel->animate *= 0.9;
+        neoPixel->current_brightness =
+                neoPixel->current_brightness * 0.9 +
+                neoPixel->target_brightness * 0.1;
+
         pixel_t *sources = neoPixel->sources;
         pixel_t *targets = neoPixel->targets[neoPixel->target_index];
 
@@ -83,7 +89,7 @@ static void interp_pixel(pixel_t *source, pixel_t *target, pixel_t *current, flo
             auto *source = sources + index;
             auto *target = targets + index;
             pixel_t current;
-            interp_pixel(source, target, &current, neoPixel->animate);
+            interp_pixel(source, target, &current, neoPixel->animate, neoPixel->current_brightness);
             pixels[index * 3 + 0] = current.green;
             pixels[index * 3 + 1] = current.red;
             pixels[index * 3 + 2] = current.blue;
@@ -107,16 +113,23 @@ void display_init(uint16_t pixel_size){
 }
 
 void display_update(){
-    float animate = neoPixel->animate;
-    uint8_t hiddenTarget = 1 - neoPixel->target_index;
-    pixel *targetsNext = neoPixel->targets[hiddenTarget];
-    pixel *targetsCurrent = neoPixel->targets[neoPixel->target_index];
+    pixel *target_current = neoPixel->targets[neoPixel->target_index];
     for(int index = 0 ; index < neoPixel->size; index++ ){
-        interp_pixel(neoPixel->sources + index, targetsCurrent + index, neoPixel->sources + index, animate );
-        targetsCurrent[index] = targetsNext[index];
+        interp_pixel(
+            neoPixel->sources + index,
+            target_current + index,
+            neoPixel->sources + index,
+            neoPixel->animate,
+            1.0f
+        );
     }
-    neoPixel->target_index = hiddenTarget;
+
+    neoPixel->target_index = 1 - neoPixel->target_index;
     neoPixel->animate = 1;
+}
+
+void display_set_brightness(float brightness){
+    neoPixel->target_brightness = brightness;
 }
 
 void display_show(pixel_t* pixels){
