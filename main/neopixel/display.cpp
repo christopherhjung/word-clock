@@ -11,7 +11,6 @@
 #include <string.h>
 
 #include "internal/NeoEsp8266RtosDmaMethod.h" // instead of NeoPixelBus.h
-#include "../time/time_lib.h"
 
 #include "display.h"
 
