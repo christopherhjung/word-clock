@@ -110,6 +110,62 @@ pixel_t parse_pixel(char* input){
     return pixel;
 }
 
+pixel_t hsv_to_rgb(float h, float s, float v) {
+    int i;
+    float f, p, q, t;
+    uint8_t r, g, b;
+    if (s == 0) {
+        // Achromatic (grey)
+        r = g = b = (int)(v * 255);
+    }else{
+        h /= 60; // sector 0 to 5
+        i = (int)h;
+        f = h - i; // factorial part of h
+        p = v * (1 - s);
+        q = v * (1 - s * f);
+        t = v * (1 - s * (1 - f));
+        switch(i) {
+            case 0:
+                r = (uint8_t)(v * 255);
+                g = (uint8_t)(t * 255);
+                b = (uint8_t)(p * 255);
+                break;
+            case 1:
+                r = (uint8_t)(q * 255);
+                g = (uint8_t)(v * 255);
+                b = (uint8_t)(p * 255);
+                break;
+            case 2:
+                r = (uint8_t)(p * 255);
+                g = (uint8_t)(v * 255);
+                b = (uint8_t)(t * 255);
+                break;
+            case 3:
+                r = (uint8_t)(p * 255);
+                g = (uint8_t)(q * 255);
+                b = (uint8_t)(v * 255);
+                break;
+            case 4:
+                r = (uint8_t)(t * 255);
+                g = (uint8_t)(p * 255);
+                b = (uint8_t)(v * 255);
+                break;
+            default: // case 5:
+                r = (uint8_t)(v * 255);
+                g = (uint8_t)(p * 255);
+                b = (uint8_t)(q * 255);
+                break;
+        }
+    }
+
+    return pixel_t {
+        .red = r,
+        .green = g,
+        .blue = b,
+        .white = 0
+    };
+}
+
 static void interp_pixel(pixel_t *source, pixel_t *target, pixel_t *current, float animate, float brightness){
     for(size_t color = 0 ; color < 3 ; color++ ){
         auto colorSource = (float)((uint8_t*)source)[color];

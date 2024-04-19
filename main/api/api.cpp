@@ -33,40 +33,40 @@ void log_req_host(httpd_req_t *req){
     }
 }
 
-esp_err_t api_power_handler(httpd_req_t *req)
+bool api_get_param(httpd_req_t *req, const char* key, char* val, size_t val_size)
 {
-    char*  buf;
-    size_t buf_len;
-
-    const char* resp_str = "err";
-    /* Read URL query string length and allocate memory for length + 1,
-     * extra byte for null termination */
-    buf_len = httpd_req_get_url_query_len(req) + 1;
+    bool success = false;
+    size_t buf_len = httpd_req_get_url_query_len(req) + 1;
     if (buf_len > 1) {
-        buf = (char*)malloc(buf_len);
+        char* buf = (char*)malloc(buf_len);
         if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
-            ESP_LOGI(TAG, "Found URL query => %s", buf);
-            char param[32];
-            /* Get value of expected key from query string */
-            if (httpd_query_key_value(buf, "status", param, sizeof(param)) == ESP_OK) {
-                bool next_status = strcmp(param, "on") == 0;
-                display_set_power(next_status);
-                resp_str = "ok";
-            }
+            success = httpd_query_key_value(buf, key, val, val_size) == ESP_OK;
         }
         free(buf);
     }
 
-    /* Send response with custom headers and body set as the
-     * string passed in user context*/
-    httpd_resp_send(req, resp_str, strlen(resp_str));
+    return success;
+}
 
-    /* After sending the HTTP response the old HTTP request
-     * headers are lost. Check if HTTP request headers can be read now. */
+esp_err_t response(httpd_req_t *req, bool success){
+    const char* resp_str = success ? "ok": "err";
+    httpd_resp_send(req, resp_str, strlen(resp_str));
     if (httpd_req_get_hdr_value_len(req, "Host") == 0) {
         ESP_LOGI(TAG, "Request headers lost");
     }
     return ESP_OK;
+}
+
+esp_err_t api_power_handler(httpd_req_t *req)
+{
+    char value[32];
+    if(api_get_param(req, "status", value, 32)){
+        bool next_status = strcmp(value, "on") == 0;
+        display_set_power(next_status);
+        return response(req, true);
+    }else{
+        return response(req, false);
+    }
 }
 
 httpd_uri_t power_uri = {
@@ -78,38 +78,14 @@ httpd_uri_t power_uri = {
 
 esp_err_t api_foreground_handler(httpd_req_t *req)
 {
-    char*  buf;
-    size_t buf_len;
-
-    const char* resp_str = "err";
-    /* Read URL query string length and allocate memory for length + 1,
-     * extra byte for null termination */
-    buf_len = httpd_req_get_url_query_len(req) + 1;
-    if (buf_len > 1) {
-        buf = (char*)malloc(buf_len);
-        if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
-            ESP_LOGI(TAG, "Found URL query => %s", buf);
-            char param[32];
-            /* Get value of expected key from query string */
-            if (httpd_query_key_value(buf, "color", param, sizeof(param)) == ESP_OK) {
-                pixel_t color = parse_pixel(param);
-                renderer_set_foreground_color(color);
-                resp_str = "ok";
-            }
-        }
-        free(buf);
+    char value[32];
+    if(api_get_param(req, "color", value, 32)){
+        pixel_t color = parse_pixel(value);
+        renderer_set_foreground_color(color);
+        return response(req, true);
+    }else{
+        return response(req, false);
     }
-
-    /* Send response with custom headers and body set as the
-     * string passed in user context*/
-    httpd_resp_send(req, resp_str, strlen(resp_str));
-
-    /* After sending the HTTP response the old HTTP request
-     * headers are lost. Check if HTTP request headers can be read now. */
-    if (httpd_req_get_hdr_value_len(req, "Host") == 0) {
-        ESP_LOGI(TAG, "Request headers lost");
-    }
-    return ESP_OK;
 }
 
 httpd_uri_t foreground_uri = {
@@ -121,38 +97,14 @@ httpd_uri_t foreground_uri = {
 
 esp_err_t api_background_handler(httpd_req_t *req)
 {
-    char*  buf;
-    size_t buf_len;
-
-    const char* resp_str = "err";
-    /* Read URL query string length and allocate memory for length + 1,
-     * extra byte for null termination */
-    buf_len = httpd_req_get_url_query_len(req) + 1;
-    if (buf_len > 1) {
-        buf = (char*)malloc(buf_len);
-        if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
-            ESP_LOGI(TAG, "Found URL query => %s", buf);
-            char param[32];
-            /* Get value of expected key from query string */
-            if (httpd_query_key_value(buf, "color", param, sizeof(param)) == ESP_OK) {
-                pixel_t color = parse_pixel(param);
-                renderer_set_background_color(color);
-                resp_str = "ok";
-            }
-        }
-        free(buf);
+    char value[32];
+    if(api_get_param(req, "color", value, 32)){
+        pixel_t color = parse_pixel(value);
+        renderer_set_background_color(color);
+        return response(req, true);
+    }else{
+        return response(req, false);
     }
-
-    /* Send response with custom headers and body set as the
-     * string passed in user context*/
-    httpd_resp_send(req, resp_str, strlen(resp_str));
-
-    /* After sending the HTTP response the old HTTP request
-     * headers are lost. Check if HTTP request headers can be read now. */
-    if (httpd_req_get_hdr_value_len(req, "Host") == 0) {
-        ESP_LOGI(TAG, "Request headers lost");
-    }
-    return ESP_OK;
 }
 
 httpd_uri_t background_uri = {
