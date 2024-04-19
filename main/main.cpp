@@ -6,7 +6,6 @@
 #include "esp_event.h"
 #include "nvs_flash.h"
 #include "config.h"
-#include "uart.h"
 #include "time/sntp_report.h"
 #include "neopixel/display.h"
 #include "neopixel/renderer.h"
