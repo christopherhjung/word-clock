@@ -175,6 +175,9 @@ void render_words(struct tm *time) {
     }
 
     display_show(renderer.pixels);
+
+    uint32_t brightness = analog_read();
+    ESP_LOGI(TAG, "Brightness: %d" , brightness);
 }
 
 #define AVERAGE_COUNT 10
@@ -206,6 +209,25 @@ void calcBrightness() {
     }
 }*/
 
+uint8_t loading_circle[] = {
+    24, 25, 26, 27, 28, 29,
+    30, 41, 52, 63, 74, 85,
+    96, 95, 94, 93, 92, 91,
+    90, 79, 68, 57, 46, 35,
+};
+
+uint8_t loading_position = 0;
+
+void render_loading(){
+    for (uint8_t i = 0; i < 144; i++) {
+        renderer.set_pixel(i, background);
+    }
+    renderer.set_pixel(loading_circle[loading_position], foreground);
+
+    loading_position = (loading_position + 1) % 24;
+    display_show(renderer.pixels);
+}
+
 static void renderer_wait(void)
 {
     time_t now;
@@ -219,7 +241,8 @@ static void renderer_wait(void)
             break;
         }
 
-        vTaskDelay(1000 / portTICK_RATE_MS);
+        render_loading();
+        vTaskDelay(100 / portTICK_RATE_MS);
     }
 }
 

@@ -23,7 +23,7 @@ const char* getApi();
 
 char* loadFile(const char* path);
 
-void loadConfig();
+void config_load();
 
 void saveConfig();
 

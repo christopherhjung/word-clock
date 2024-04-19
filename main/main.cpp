@@ -45,20 +45,15 @@ void run(){
     if(content != NULL){
         printf("%s", content);
     }
-    loadConfig();
+    config_load();
 
     ESP_LOGI("wifi", "ESP_WIFI_MODE_STA" ) ;
     wifi_init_sta();
+    sntp_setup();
     sntp_report_init();
 
     display_init(114);
     renderer_init();
-
-    //esp_log_set_putchar(myPutChar);
-    //runTerminal();
-    //runControlLink();
-
-    //run_echo();
 }
 
 extern "C"{

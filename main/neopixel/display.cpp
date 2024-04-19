@@ -64,7 +64,7 @@ typedef struct neo_pixel{
 
 neo_pixel_t* neoPixel;
 
-static void calcColor(pixel_t *source, pixel_t *target, pixel_t *current, float animate){
+static void interp_pixel(pixel_t *source, pixel_t *target, pixel_t *current, float animate){
     for(size_t color = 0 ; color < 3 ; color++ ){
         auto colorSource = (float)((uint8_t*)source)[color];
         auto colorTarget = (float)((uint8_t*)target)[color];
@@ -75,7 +75,7 @@ static void calcColor(pixel_t *source, pixel_t *target, pixel_t *current, float 
 
 [[noreturn]] static void display_task(void *pvParameters){
     while(true){
-        neoPixel->animate *= 0.5;
+        neoPixel->animate *= 0.9;
         pixel_t *sources = neoPixel->sources;
         pixel_t *targets = neoPixel->targets[neoPixel->target_index];
 
@@ -84,7 +84,7 @@ static void calcColor(pixel_t *source, pixel_t *target, pixel_t *current, float 
             auto *source = sources + index;
             auto *target = targets + index;
             pixel_t current;
-            calcColor(source, target, &current, neoPixel->animate);
+            interp_pixel(source, target, &current, neoPixel->animate);
             pixels[index * 3 + 0] = current.green;
             pixels[index * 3 + 1] = current.red;
             pixels[index * 3 + 2] = current.blue;
@@ -113,7 +113,7 @@ void display_update(){
     pixel *targetsNext = neoPixel->targets[hiddenTarget];
     pixel *targetsCurrent = neoPixel->targets[neoPixel->target_index];
     for(int index = 0 ; index < neoPixel->size; index++ ){
-        calcColor(neoPixel->sources + index, targetsCurrent + index, neoPixel->sources + index, animate );
+        interp_pixel(neoPixel->sources + index, targetsCurrent + index, neoPixel->sources + index, animate );
         targetsCurrent[index] = targetsNext[index];
     }
     neoPixel->target_index = hiddenTarget;

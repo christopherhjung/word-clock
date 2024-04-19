@@ -149,7 +149,7 @@ void config_init(){
     config_lock = xSemaphoreCreateBinary();  // start of task
 }
 
-void loadConfig(){
+void config_load(){
     xSemaphoreTake(config_lock, 0);
     cJSON_Delete(config);
     char* json = loadFile("/spiffs/config.json");
