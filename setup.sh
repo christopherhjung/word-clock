@@ -15,3 +15,4 @@ eval "$(pyenv init --path)"
 pyenv global 3.10.1
 
 python -m pip install --user -r $(realpath ESP8266_RTOS_SDK/requirements.txt)
+
