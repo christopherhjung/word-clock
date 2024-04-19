@@ -21,6 +21,7 @@
 #include "lwip/apps/sntp.h"
 
 #include "display.h"
+#include "../config.h"
 
 
 #define NONE 0
@@ -140,32 +141,44 @@ struct Renderer{
 };
 
 Renderer renderer;
-pixel_t background = {
+pixel_t background_color = {
     .red = 0,
     .green = 0,
     .blue = 0,
     .white = 0
 };
 
-pixel_t foreground = {
+pixel_t foreground_color = {
     .red = 255,
     .green = 255,
     .blue = 255,
     .white = 0
 };
 
+void renderer_set_background_color(pixel_t color){
+    background_color = color;
+    config_set_background_color(color);
+    config_save();
+}
+
+void renderer_set_foreground_color(pixel_t color){
+    foreground_color = color;
+    config_set_foreground_color(color);
+    config_save();
+}
+
 void render_word(uint8_t targetWord) {
     uint8_t wordStart = wordStarts[targetWord];
     uint8_t wordLength = wordLengths[targetWord];
 
     for (uint8_t i = 0; i < wordLength; i++) {
-        renderer.set_pixel(wordStart + i, foreground);
+        renderer.set_pixel(wordStart + i, foreground_color);
     }
 }
 
 void render_words(struct tm *time) {
     for (uint8_t i = 0; i < 144; i++) {
-        renderer.set_pixel(i, background);
+        renderer.set_pixel(i, background_color);
     }
 
     uint8_t targetWords[6];
@@ -220,9 +233,9 @@ uint8_t loading_position = 0;
 
 void render_loading(){
     for (uint8_t i = 0; i < 144; i++) {
-        renderer.set_pixel(i, background);
+        renderer.set_pixel(i, background_color);
     }
-    renderer.set_pixel(loading_circle[loading_position], foreground);
+    renderer.set_pixel(loading_circle[loading_position], foreground_color);
 
     loading_position = (loading_position + 1) % 24;
     display_show(renderer.pixels);
@@ -248,6 +261,9 @@ static void renderer_wait(void)
 
 static void renderer_task(void *arg)
 {
+    foreground_color = config_get_foreground_color();
+    background_color = config_get_background_color();
+
     renderer_wait();
 
     time_t now;

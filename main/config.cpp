@@ -167,22 +167,39 @@ void config_load(){
     xSemaphoreGive(config_lock);
 }
 
-void setOrReplace(cJSON* json, const char *key, const char* value){
+void set_or_replace_value(cJSON* json, const char *key, cJSON* value){
     cJSON* obj = cJSON_GetObjectItem(json, key);
-    cJSON* cStr = cJSON_CreateString(value);
     if(obj == NULL){
-        cJSON_AddItemToObject(config, key, cStr);
+        cJSON_AddItemToObject(config, key, value);
     }else{
-        cJSON_ReplaceItemInObject(config, key, cStr);
+        cJSON_ReplaceItemInObject(config, key, value);
     }
 }
 
-char* getString(cJSON* json, const char *key){
+void set_or_replace_bool(cJSON* json, const char *key, bool value){
+    cJSON* cBool = cJSON_CreateBool(value);
+    set_or_replace_value(json, key, cBool);
+}
+
+void set_or_replace_str(cJSON* json, const char *key, const char* value){
+    cJSON* cStr = cJSON_CreateString(value);
+    set_or_replace_value(json, key, cStr);
+}
+
+char* get_str(cJSON* json, const char *key){
     cJSON* entry = cJSON_GetObjectItem(json, key);
     if(entry == NULL){
         return NULL;
     }
     return entry->valuestring;
+}
+
+bool get_bool(cJSON* json, const char *key){
+    cJSON* entry = cJSON_GetObjectItem(json, key);
+    if(entry == NULL){
+        return false;
+    }
+    return cJSON_IsTrue(entry);
 }
 
 template<class T>
@@ -259,64 +276,52 @@ void setup_wifi(wifi_config_t *wifi_config, int* wifi_index){
     xSemaphoreGive(config_lock);
 }
 
-bool fetch_server(const cJSON* server, tcp_server_t *tcp_server){
-    if(has_field_value(server, "type", "tcp")){
-
-        if(!copy_field_value(server, "host", tcp_server->host, 64)){
-            return false;
-        }
-
-        if(!copy_field_value(server, "port", tcp_server->port, 8)){
-            return false;
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
-void setup_server(tcp_server_t* server, int* server_index){
+void config_set_foreground_color(pixel_t pixel){
+    char *rgb_str = (char*)malloc(17 * sizeof(char));
+    snprintf(rgb_str, 17, "rgb(%d,%d,%d)", pixel.red, pixel.green, pixel.blue);
     xSemaphoreTake(config_lock, 0);
-    const cJSON *servers = cJSON_GetObjectItem(config, "servers");
-    nextArrayElement(servers, server_index, server, fetch_server);
+    set_or_replace_str(config, "foreground", rgb_str);
     xSemaphoreGive(config_lock);
 }
 
-void setVersion(const char *version){
+pixel_t config_get_foreground_color(){
     xSemaphoreTake(config_lock, 0);
-    setOrReplace(config, "version", version);
+    char* rgb_str = get_str(config, "foreground");
+    pixel_t color = parse_pixel(rgb_str);
+    xSemaphoreGive(config_lock);
+    return color;
+}
+
+void config_set_background_color(pixel_t pixel){
+    char *rgb_str = (char*)malloc(17 * sizeof(char));
+    snprintf(rgb_str, 17, "rgb(%d,%d,%d)", pixel.red, pixel.green, pixel.blue);
+    xSemaphoreTake(config_lock, 0);
+    set_or_replace_str(config, "background", rgb_str);
     xSemaphoreGive(config_lock);
 }
 
-const char* getVersion(){
+pixel_t config_get_background_color(){
     xSemaphoreTake(config_lock, 0);
-    const char* version = getString(config, "version");
+    char* rgb_str = get_str(config, "background");
+    pixel_t color = parse_pixel(rgb_str);
     xSemaphoreGive(config_lock);
-    return version;
+    return color;
 }
 
-const char* getApi(){
+void config_set_power_status(bool status){
     xSemaphoreTake(config_lock, 0);
-    const char* api = getString(config, "api");
-    xSemaphoreGive(config_lock);
-    return api;
-}
-
-void setToken(const char *token){
-    xSemaphoreTake(config_lock, 0);
-    setOrReplace(config, "token", token);
+    set_or_replace_bool(config, "power", status);
     xSemaphoreGive(config_lock);
 }
 
-const char* getToken(){
+bool config_get_power_status(){
     xSemaphoreTake(config_lock, 0);
-    const char* token = getString(config, "token");
+    bool status = get_bool(config, "power");
     xSemaphoreGive(config_lock);
-    return token;
+    return status;
 }
 
-void saveConfig(){
+void config_save(){
     xSemaphoreTake(config_lock, 0);
     char *json = cJSON_Print(config);
     writeFile("/spiffs/config.json", json);

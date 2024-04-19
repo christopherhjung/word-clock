@@ -17,7 +17,10 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "driver/gpio.h"
+#include "display.h"
 
 #include "lwip/apps/sntp.h"
 
 void renderer_init();
+void renderer_set_background_color(pixel_t color);
+void renderer_set_foreground_color(pixel_t color);

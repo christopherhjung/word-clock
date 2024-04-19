@@ -13,6 +13,7 @@
 #include "internal/NeoEsp8266RtosDmaMethod.h" // instead of NeoPixelBus.h
 
 #include "display.h"
+#include "../config.h"
 
 Neo800KbpsMethod method(114, 3);
 
@@ -59,11 +60,55 @@ typedef struct neo_pixel{
     float animate;
     float current_brightness = 1.0;
     float target_brightness = 1.0;
+    bool power = true;
     size_t size;
 } neo_pixel_t;
 
 
 neo_pixel_t* neoPixel;
+
+
+
+
+pixel_t parse_pixel(char* input){
+
+    int red = 0, green = 0, blue = 0;
+    int currentIndex = 0;
+
+    // Find and extract red value
+    while (input[currentIndex] != '(')
+        currentIndex++;
+
+    currentIndex++; // Move past '('
+
+    while (input[currentIndex] != ',') {
+        red = red * 10 + (input[currentIndex] - '0');
+        currentIndex++;
+    }
+
+    currentIndex++; // Move past ','
+
+    // Find and extract green value
+    while (input[currentIndex] != ',') {
+        green = green * 10 + (input[currentIndex] - '0');
+        currentIndex++;
+    }
+
+    currentIndex++; // Move past ','
+
+    // Find and extract blue value
+    while (input[currentIndex] != ')') {
+        blue = blue * 10 + (input[currentIndex] - '0');
+        currentIndex++;
+    }
+
+    pixel_t pixel;
+    pixel.red = red;
+    pixel.green = green;
+    pixel.blue = blue;
+
+    return pixel;
+}
 
 static void interp_pixel(pixel_t *source, pixel_t *target, pixel_t *current, float animate, float brightness){
     for(size_t color = 0 ; color < 3 ; color++ ){
@@ -77,9 +122,14 @@ static void interp_pixel(pixel_t *source, pixel_t *target, pixel_t *current, flo
 [[noreturn]] static void display_task(void *pvParameters){
     while(true){
         neoPixel->animate *= 0.9;
+        float powered_brightness = neoPixel->target_brightness;
+        if(!neoPixel->power){
+            powered_brightness = 0.0;
+        }
+
         neoPixel->current_brightness =
                 neoPixel->current_brightness * 0.9 +
-                neoPixel->target_brightness * 0.1;
+                powered_brightness * 0.1;
 
         pixel_t *sources = neoPixel->sources;
         pixel_t *targets = neoPixel->targets[neoPixel->target_index];
@@ -107,6 +157,7 @@ void display_init(uint16_t pixel_size){
     neoPixel->animate = 0;
     neoPixel->target_index = 0;
     neoPixel->size = pixel_size;
+    neoPixel->power = config_get_power_status();
 
     method.Initialize();
     xTaskCreate(&display_task, "display_task" , 4096 , NULL , 2 , NULL ) ;
@@ -130,6 +181,12 @@ void display_update(){
 
 void display_set_brightness(float brightness){
     neoPixel->target_brightness = brightness;
+}
+
+void display_set_power(bool status){
+    neoPixel->power = status;
+    config_set_power_status(status);
+    config_save();
 }
 
 void display_show(pixel_t* pixels){

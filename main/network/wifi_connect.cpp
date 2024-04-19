@@ -31,7 +31,7 @@ static EventGroupHandle_t s_wifi_event_group;
 #define WIFI_CONNECTED_BIT        BIT0
 #define WIFI_RECONNECTED_BIT      BIT1
 
-static const char *WIFI_TAG = "wifi station";
+static const char *WIFI_TAG = "wifi_connect";
 
 int wifi_index = 0;
 wifi_config_t wifi_config = { .sta = {} };

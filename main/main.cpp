@@ -11,6 +11,7 @@
 #include "neopixel/display.h"
 #include "neopixel/renderer.h"
 #include "neopixel/dimmer.h"
+#include "api/api.h"
 
 #include "driver/adc.h"
 
@@ -33,20 +34,20 @@ void run(){
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     config_init();
+    mount();
+    config_load();
 
     adc_config_t adc_config;
     adc_config.mode = ADC_READ_TOUT_MODE;
     adc_config.clk_div = 8;
     ESP_ERROR_CHECK(adc_init(&adc_config));
 
-    mount();
     listFiles(".");
     listFiles("/spiffs");
     char* content = loadFile("/spiffs/config.json");
     if(content != NULL){
         printf("%s", content);
     }
-    config_load();
 
     ESP_LOGI("wifi", "ESP_WIFI_MODE_STA" ) ;
     wifi_init_sta();
@@ -56,6 +57,8 @@ void run(){
     display_init(114);
     dimmer_init();
     renderer_init();
+
+    rest_init();
 }
 
 extern "C"{

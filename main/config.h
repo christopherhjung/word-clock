@@ -1,36 +1,34 @@
 #include "esp_wifi_types.h"
-
-typedef struct {
-    char host[64];
-    char port[8];
-} tcp_server_t;
-
-void writeFile(const char* path, const char *buffer);
-
-void readFile(const char* path, char *buffer, int size);
+#include "neopixel/display.h"
 
 void mount(void);
 
-void setVersion(const char *version);
+void readFile(const char* path, char *buffer, int size);
 
-const char* getVersion();
-
-void setToken(const char* token);
-
-const char* getToken();
-
-const char* getApi();
+void writeFile(const char* path, const char *buffer);
 
 char* loadFile(const char* path);
 
+void config_init();
+
 void config_load();
 
-void saveConfig();
+void setup_wifi(wifi_config_t *wifi_config, int* wifi_index);
 
-void listFiles(const char*);
 
-void setup_wifi(wifi_config_t *wifi_config, int *wifi_index);
+void config_set_foreground_color(pixel_t pixel);
 
-void setup_server(tcp_server_t* server, int *server_index );
+pixel_t config_get_foreground_color();
 
-void config_init();
+void config_set_background_color(pixel_t pixel);
+
+pixel_t config_get_background_color();
+
+void config_set_power_status(bool status);
+
+bool config_get_power_status();
+
+
+void config_save();
+
+void listFiles(const char* path);
