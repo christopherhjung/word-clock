@@ -70,7 +70,7 @@ neo_pixel_t* neoPixel;
 
 
 
-pixel_t parse_pixel(char* input){
+pixel_t parse_pixel(const char* input){
 
     int red = 0, green = 0, blue = 0;
     int currentIndex = 0;

@@ -6,3 +6,4 @@
 
 
 void dimmer_init();
+void dimmer_set_max_brightness(float brightness);

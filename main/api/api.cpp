@@ -16,6 +16,7 @@
 #include "nvs_flash.h"
 #include "../neopixel/display.h"
 #include "../neopixel/renderer.h"
+#include "../neopixel/dimmer.h"
 
 #include <esp_http_server.h>
 
@@ -60,7 +61,7 @@ esp_err_t response(httpd_req_t *req, bool success){
 esp_err_t api_power_handler(httpd_req_t *req)
 {
     char value[32];
-    if(api_get_param(req, "status", value, 32)){
+    if(api_get_param(req, "value", value, 32)){
         bool next_status = strcmp(value, "on") == 0;
         display_set_power(next_status);
         return response(req, true);
@@ -70,16 +71,16 @@ esp_err_t api_power_handler(httpd_req_t *req)
 }
 
 httpd_uri_t power_uri = {
-        .uri       = "/power",
-        .method    = HTTP_GET,
-        .handler   = api_power_handler,
-        .user_ctx  = (void*) 0
+    .uri       = "/power",
+    .method    = HTTP_GET,
+    .handler   = api_power_handler,
+    .user_ctx  = (void*) 0
 };
 
 esp_err_t api_foreground_handler(httpd_req_t *req)
 {
     char value[32];
-    if(api_get_param(req, "color", value, 32)){
+    if(api_get_param(req, "value", value, 32)){
         pixel_t color = parse_pixel(value);
         renderer_set_foreground_color(color);
         return response(req, true);
@@ -89,16 +90,16 @@ esp_err_t api_foreground_handler(httpd_req_t *req)
 }
 
 httpd_uri_t foreground_uri = {
-        .uri       = "/foreground",
-        .method    = HTTP_GET,
-        .handler   = api_foreground_handler,
-        .user_ctx  = (void*) 0
+    .uri       = "/foreground",
+    .method    = HTTP_GET,
+    .handler   = api_foreground_handler,
+    .user_ctx  = (void*) 0
 };
 
 esp_err_t api_background_handler(httpd_req_t *req)
 {
     char value[32];
-    if(api_get_param(req, "color", value, 32)){
+    if(api_get_param(req, "value", value, 32)){
         pixel_t color = parse_pixel(value);
         renderer_set_background_color(color);
         return response(req, true);
@@ -108,26 +109,66 @@ esp_err_t api_background_handler(httpd_req_t *req)
 }
 
 httpd_uri_t background_uri = {
-        .uri       = "/background",
-        .method    = HTTP_GET,
-        .handler   = api_background_handler,
-        .user_ctx  = (void*) 0
+    .uri       = "/background",
+    .method    = HTTP_GET,
+    .handler   = api_background_handler,
+    .user_ctx  = (void*) 0
+};
+
+esp_err_t api_max_brightness_handler(httpd_req_t *req)
+{
+    char value[32];
+    if(api_get_param(req, "value", value, 32)){
+        float max_brightness = atof(value);
+        dimmer_set_max_brightness(max_brightness);
+        return response(req, true);
+    }else{
+        return response(req, false);
+    }
+}
+
+httpd_uri_t max_brightness_uri = {
+    .uri       = "/brightness",
+    .method    = HTTP_GET,
+    .handler   = api_max_brightness_handler,
+    .user_ctx  = (void*) 0
+};
+
+esp_err_t api_it_is_active_handler(httpd_req_t *req)
+{
+    char value[32];
+    if(api_get_param(req, "value", value, 32)){
+        bool active = strcmp(value, "on") == 0;
+        renderer_set_it_is_active(active);
+        return response(req, true);
+    }else{
+        return response(req, false);
+    }
+}
+
+httpd_uri_t it_is_active_uri = {
+    .uri       = "/it_is",
+    .method    = HTTP_GET,
+    .handler   = api_it_is_active_handler,
+    .user_ctx  = (void*) 0
 };
 
 httpd_handle_t start_webserver(void)
 {
-    httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.stack_size = 1024 * 8;
+    config.stack_size = 1024 * 16;
 
     // Start the httpd server
     ESP_LOGI(TAG, "Starting server on port: '%d'", config.server_port);
+    httpd_handle_t server;
     if (httpd_start(&server, &config) == ESP_OK) {
         // Set URI handlers
         ESP_LOGI(TAG, "Registering URI handlers");
         httpd_register_uri_handler(server, &power_uri);
         httpd_register_uri_handler(server, &foreground_uri);
         httpd_register_uri_handler(server, &background_uri);
+        httpd_register_uri_handler(server, &max_brightness_uri);
+        httpd_register_uri_handler(server, &it_is_active_uri);
         return server;
     }
 

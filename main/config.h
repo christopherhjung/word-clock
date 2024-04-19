@@ -24,6 +24,14 @@ void config_set_background_color(pixel_t pixel);
 
 pixel_t config_get_background_color();
 
+void config_set_max_brightness(float max_brightness);
+
+float config_get_max_brightness();
+
+void config_set_it_is_active(bool status);
+
+bool config_get_it_is_active();
+
 void config_set_power_status(bool status);
 
 bool config_get_power_status();

@@ -24,3 +24,4 @@
 void renderer_init();
 void renderer_set_background_color(pixel_t color);
 void renderer_set_foreground_color(pixel_t color);
+void renderer_set_it_is_active(bool active);

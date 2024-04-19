@@ -71,7 +71,7 @@ uint8_t lowerBrightness = 23;
 
 uint8_t powerState = 1;
 
-uint8_t esIstMode = 1;
+bool it_is_active = true;
 uint8_t minutenMode = 1;
 
 uint8_t find_words(uint8_t* targetWords, struct tm *time) {
@@ -80,7 +80,7 @@ uint8_t find_words(uint8_t* targetWords, struct tm *time) {
     int minutes = time->tm_min;
     uint8_t minuteSegment = minutes / 5;
 
-    if (esIstMode == 1) {
+    if (it_is_active) {
         *currentWord++ = ES;
         *currentWord++ = IST;
     }
@@ -164,6 +164,12 @@ void renderer_set_background_color(pixel_t color){
 void renderer_set_foreground_color(pixel_t color){
     foreground_color = color;
     config_set_foreground_color(color);
+    config_save();
+}
+
+void renderer_set_it_is_active(bool active){
+    it_is_active = active;
+    config_set_it_is_active(active);
     config_save();
 }
 
@@ -261,8 +267,6 @@ static void renderer_wait(void)
 
 static void renderer_task(void *arg)
 {
-    foreground_color = config_get_foreground_color();
-    background_color = config_get_background_color();
 
     renderer_wait();
 
@@ -280,5 +284,8 @@ static void renderer_task(void *arg)
 
 void renderer_init()
 {
+    foreground_color = config_get_foreground_color();
+    background_color = config_get_background_color();
+    it_is_active = config_get_it_is_active();
     xTaskCreate(renderer_task, "renderer_task", 4096, NULL, 10, NULL);
 }

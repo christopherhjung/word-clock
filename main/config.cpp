@@ -186,20 +186,33 @@ void set_or_replace_str(cJSON* json, const char *key, const char* value){
     set_or_replace_value(json, key, cStr);
 }
 
-char* get_str(cJSON* json, const char *key){
+void set_or_replace_number(cJSON* json, const char *key, float value){
+    cJSON* cNumber = cJSON_CreateNumber((double)value);
+    set_or_replace_value(json, key, cNumber);
+}
+
+const char* get_str(cJSON* json, const char *key, const char *default_val){
     cJSON* entry = cJSON_GetObjectItem(json, key);
     if(entry == NULL){
-        return NULL;
+        return default_val;
     }
     return entry->valuestring;
 }
 
-bool get_bool(cJSON* json, const char *key){
+bool get_bool(cJSON* json, const char *key, bool default_val){
     cJSON* entry = cJSON_GetObjectItem(json, key);
     if(entry == NULL){
-        return false;
+        return default_val;
     }
     return cJSON_IsTrue(entry);
+}
+
+float get_number(cJSON* json, const char *key, float default_val){
+    cJSON* entry = cJSON_GetObjectItem(json, key);
+    if(entry == NULL){
+        return default_val;
+    }
+    return (float)entry->valuedouble;
 }
 
 template<class T>
@@ -286,7 +299,7 @@ void config_set_foreground_color(pixel_t pixel){
 
 pixel_t config_get_foreground_color(){
     xSemaphoreTake(config_lock, 0);
-    char* rgb_str = get_str(config, "foreground");
+    const char* rgb_str = get_str(config, "foreground", "rgb(255,255,255)");
     pixel_t color = parse_pixel(rgb_str);
     xSemaphoreGive(config_lock);
     return color;
@@ -302,10 +315,23 @@ void config_set_background_color(pixel_t pixel){
 
 pixel_t config_get_background_color(){
     xSemaphoreTake(config_lock, 0);
-    char* rgb_str = get_str(config, "background");
+    const char* rgb_str = get_str(config, "background", "rgb(0,0,0)");
     pixel_t color = parse_pixel(rgb_str);
     xSemaphoreGive(config_lock);
     return color;
+}
+
+void config_set_max_brightness(float max_brightness){
+    xSemaphoreTake(config_lock, 0);
+    set_or_replace_number(config, "brightness", max_brightness);
+    xSemaphoreGive(config_lock);
+}
+
+float config_get_max_brightness(){
+    xSemaphoreTake(config_lock, 0);
+    float max_brightness = get_number(config, "brightness", 1.0);
+    xSemaphoreGive(config_lock);
+    return max_brightness;
 }
 
 void config_set_power_status(bool status){
@@ -316,14 +342,33 @@ void config_set_power_status(bool status){
 
 bool config_get_power_status(){
     xSemaphoreTake(config_lock, 0);
-    bool status = get_bool(config, "power");
+    bool status = get_bool(config, "power", true);
+    xSemaphoreGive(config_lock);
+    return status;
+}
+
+void config_set_it_is_active(bool status){
+    xSemaphoreTake(config_lock, 0);
+    set_or_replace_bool(config, "it_is", status);
+    xSemaphoreGive(config_lock);
+}
+
+bool config_get_it_is_active(){
+    xSemaphoreTake(config_lock, 0);
+    bool status = get_bool(config, "it_is", false);
     xSemaphoreGive(config_lock);
     return status;
 }
 
 void config_save(){
     xSemaphoreTake(config_lock, 0);
-    char *json = cJSON_Print(config);
+    ESP_LOGI(TAG, "Power Handler1");
+    char *json = cJSON_PrintUnformatted(config);
+
+    if(json != NULL){
+        writeFile("/spiffs/config.json", json);
+    }
+
     writeFile("/spiffs/config.json", json);
     xSemaphoreGive(config_lock);
     free(json);
