@@ -132,15 +132,6 @@ uint8_t find_words(uint8_t* targetWords, struct tm *time) {
     return currentWord - targetWords;
 }
 
-struct Renderer{
-    pixel_t pixels[114];
-
-    void set_pixel(uint32_t idx, pixel_t pixel){
-        pixels[idx] = pixel;
-    }
-};
-
-Renderer renderer;
 pixel_t background_color = {
     .red = 0,
     .green = 0,
@@ -154,6 +145,26 @@ pixel_t foreground_color = {
     .blue = 255,
     .white = 0
 };
+
+struct Renderer{
+    pixel_t pixels[114];
+
+    void set_pixel(uint32_t idx, pixel_t pixel){
+        pixels[idx] = pixel;
+    }
+
+    void clear(){
+        for (uint8_t i = 0; i < 144; i++) {
+            set_pixel(i, background_color);
+        }
+    }
+
+    void show(){
+        display_show(pixels);
+    }
+};
+
+Renderer renderer;
 
 void renderer_set_background_color(pixel_t color){
     background_color = color;
@@ -183,9 +194,7 @@ void render_word(uint8_t targetWord) {
 }
 
 void render_words(struct tm *time) {
-    for (uint8_t i = 0; i < 144; i++) {
-        renderer.set_pixel(i, background_color);
-    }
+    renderer.clear();
 
     uint8_t targetWords[6];
     uint8_t wordCount = find_words(targetWords, time);
@@ -193,10 +202,7 @@ void render_words(struct tm *time) {
         render_word(targetWords[i]);
     }
 
-    display_show(renderer.pixels);
-
-    uint32_t brightness = analog_read();
-    ESP_LOGI(TAG, "Brightness: %d" , brightness);
+    renderer.show();
 }
 
 #define AVERAGE_COUNT 10
@@ -237,14 +243,14 @@ uint8_t loading_circle[] = {
 
 uint8_t loading_position = 0;
 
+
+
 void render_loading(){
-    for (uint8_t i = 0; i < 144; i++) {
-        renderer.set_pixel(i, background_color);
-    }
+    renderer.clear();
     renderer.set_pixel(loading_circle[loading_position], foreground_color);
 
     loading_position = (loading_position + 1) % 24;
-    display_show(renderer.pixels);
+    renderer.show();
 }
 
 static void renderer_wait(void)
@@ -263,6 +269,10 @@ static void renderer_wait(void)
         render_loading();
         vTaskDelay(100 / portTICK_RATE_MS);
     }
+
+    renderer.clear();
+    renderer.show();
+    vTaskDelay(1000 / portTICK_RATE_MS);
 }
 
 static void renderer_task(void *arg)
