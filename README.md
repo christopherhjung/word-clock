@@ -6,8 +6,8 @@ bash setup.sh
 bash upload.sh
 ```
 
-http://<ip>/foreground?value=rgb(255,0,0)
-http://<ip>/background?value=rgb(255,0,0)
-http://<ip>/it_is?value=on/off
-http://<ip>/power?value=on/off
-http://<ip>/brightness?value=[0.0, 1.0]
+- http://word-clock/foreground?value=rgb(255,0,0)
+- http://word-clock/background?value=rgb(255,0,0)
+- http://word-clock/it_is?value=on/off
+- http://word-clock/power?value=on/off
+- http://word-clock/brightness?value=[0.0,1.0]
