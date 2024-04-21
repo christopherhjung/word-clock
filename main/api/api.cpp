@@ -20,6 +20,8 @@
 
 #include <esp_http_server.h>
 
+#include "ota.h"
+
 static const char *TAG="api";
 
 void log_req_host(httpd_req_t *req){
@@ -50,11 +52,9 @@ bool api_get_param(httpd_req_t *req, const char* key, char* val, size_t val_size
 }
 
 esp_err_t response(httpd_req_t *req, bool success){
+    httpd_resp_set_status(req, "200 OK");
     const char* resp_str = success ? "ok": "err";
     httpd_resp_send(req, resp_str, strlen(resp_str));
-    if (httpd_req_get_hdr_value_len(req, "Host") == 0) {
-        ESP_LOGI(TAG, "Request headers lost");
-    }
     return ESP_OK;
 }
 
@@ -153,6 +153,52 @@ httpd_uri_t it_is_active_uri = {
     .user_ctx  = (void*) 0
 };
 
+
+esp_err_t api_ota_handler(httpd_req_t *req)
+{
+    OtaUpdate ota;
+    uint32_t size = req->content_len;
+    if(!ota.begin(size)){
+        httpd_resp_send_408(req);
+        return ESP_FAIL;
+    }
+
+    char buffer[1024];
+    size_t offset = 0;
+    while (offset < size) {
+        int ret = httpd_req_recv(req, buffer, 1024);
+        if (ret <= 0) {
+            if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+                httpd_resp_send_408(req);
+            }
+            return ESP_FAIL;
+        }
+
+        if(!ota.write(buffer, ret)){
+            httpd_resp_send_408(req);
+            return ESP_FAIL;
+        }
+        offset += ret;
+    }
+
+    if(ota.finish()){
+        response(req, true);
+        ESP_LOGI(TAG, "Prepare to restart system!");
+        vTaskDelay( 1000 / portTICK_PERIOD_MS );
+        esp_restart();
+        return ESP_OK;
+    }else{
+        return ESP_FAIL;
+    }
+}
+
+httpd_uri_t ota_uri = {
+    .uri       = "/ota",
+    .method    = HTTP_POST,
+    .handler   = api_ota_handler,
+    .user_ctx  = (void*) 0
+};
+
 httpd_handle_t start_webserver(void)
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -169,6 +215,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &background_uri);
         httpd_register_uri_handler(server, &max_brightness_uri);
         httpd_register_uri_handler(server, &it_is_active_uri);
+        httpd_register_uri_handler(server, &ota_uri);
         return server;
     }
 

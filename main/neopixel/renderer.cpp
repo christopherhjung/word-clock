@@ -74,61 +74,48 @@ uint8_t powerState = 1;
 bool it_is_active = true;
 uint8_t minutenMode = 1;
 
+
 uint8_t find_words(uint8_t* targetWords, struct tm *time) {
     uint8_t* currentWord = targetWords;
-    int hours = time->tm_hour % 12;
+    int hours = time->tm_hour;
     int minutes = time->tm_min;
     uint8_t minuteSegment = minutes / 5;
+
+    switch (minuteSegment) {
+        case 0: *currentWord++ = Uhr; break;
+        case 1: case 5: case 7: case 11: *currentWord++ = MFuenf; break;
+        case 2: case 10: *currentWord++ = MZehn; break;
+        case 3: case 9: *currentWord++ = Viertel; break;
+        case 4: case 8: *currentWord++ = MZwanzig; break;
+    }
+
+    switch (minuteSegment) {
+        case 1: case 2: case 3: case 4: case 7: *currentWord++ = Nach; break;
+        case 8: case 9: case 10: case 11: case 5: *currentWord++ = Vor; break;
+    }
+
+    switch (minuteSegment) {
+        case 5: case 6: case 7: *currentWord++ = Halb; break;
+    }
+
+    int offset;
+    if( hours == 1 && minuteSegment == 0 ){
+        offset = 0;
+    }else{
+        offset = ((minuteSegment >= 5 ? 1 : 0) + 11 + hours ) % 12 + 1;
+    }
+
+    *currentWord++ = Ein + offset;
+
+    for(int dot = 0 ; dot < minutes % 5 ; dot++){
+        *currentWord++ = EinsM + dot;
+    }
 
     if (it_is_active) {
         *currentWord++ = ES;
         *currentWord++ = IST;
     }
 
-    if (minuteSegment == 1 || minuteSegment == 11) {
-        *currentWord++ = MFuenf;
-    } else if (minuteSegment == 2 || minuteSegment == 10) {
-        *currentWord++ = MZehn;
-    } else if (minuteSegment == 3 || minuteSegment == 9) {
-        *currentWord++ = Viertel;
-    } else if (minuteSegment == 4 || minuteSegment == 8) {
-        *currentWord++ = MZwanzig;
-    } else if (minuteSegment == 5 || minuteSegment == 7) {
-        *currentWord++ = MFuenf;
-        *currentWord++ = Halb;
-    } else if (minuteSegment == 6) {
-        *currentWord++ = Halb;
-        *currentWord++ = Eins + hours % 12;
-    }
-
-    if (minuteSegment == 0) {
-        if (hours == 1) {
-            *currentWord++ = Ein;
-        } else {
-            *currentWord++ = Eins + hours - 1;
-        }
-
-        *currentWord++ = Uhr;
-    } else if (minutes < 25 && minutes > 4) {
-        *currentWord++ = Eins + hours - 1;
-        *currentWord++ = Nach;
-    } else if (minuteSegment != 6) {
-        if (minuteSegment != 7) {
-            *currentWord++ = Vor;
-        } else {
-            *currentWord++ = Nach;
-        }
-
-        *currentWord++ = Eins + hours % 12;
-    }
-
-    minutes %= 5;
-
-    if (minutenMode == 1) {
-        for (; minutes > 0;) {
-            *currentWord++ = EinsM + --minutes;
-        }
-    }
     return currentWord - targetWords;
 }
 
@@ -196,7 +183,7 @@ void render_word(uint8_t targetWord) {
 void render_words(struct tm *time) {
     renderer.clear();
 
-    uint8_t targetWords[6];
+    uint8_t targetWords[16];
     uint8_t wordCount = find_words(targetWords, time);
     for (uint8_t i = 0; i < wordCount; i++) {
         render_word(targetWords[i]);
