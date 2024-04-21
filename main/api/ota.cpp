@@ -57,8 +57,7 @@ bool OtaUpdate::write(char* bytes, uint32_t size){
     float percent = 100.0f * ((float) writtenSize) / ((float)binarySize);
 
     if(lastPercent + 5 < percent){
-        //echo("Uploading: " + String(percent) + "%");
-        ESP_LOGI(TAG, "Uploading: %%%.2f", percent);
+        ESP_LOGI(TAG, "Uploading: %.2f%%", percent);
         lastPercent = percent;
     }
 

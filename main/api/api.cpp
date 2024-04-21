@@ -164,8 +164,7 @@ esp_err_t api_ota_handler(httpd_req_t *req)
     }
 
     char buffer[1024];
-    size_t offset = 0;
-    while (offset < size) {
+    for (size_t offset = 0; offset < size;) {
         int ret = httpd_req_recv(req, buffer, 1024);
         if (ret <= 0) {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
